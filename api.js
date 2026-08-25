@@ -2,6 +2,9 @@ const BASE_URL = (window.location.hostname === 'localhost' || window.location.ho
   ? 'http://localhost:5000/api'
   : '/api';
 
+import { db } from './database.js';
+import { auth } from './auth.js';
+
 // ----------------------------------------------------
 // FRONTEND API CLIENT
 // ----------------------------------------------------
@@ -57,102 +60,34 @@ export const api = {
 
   // Profile Data Fetching
   getProfile: async (userId) => {
-    try {
-      const resp = await fetch(`${BASE_URL}/users/${userId}/profile`);
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data.error || 'Server Error');
-      return data;
-    } catch (err) {
-      console.error('API Error [Profile]:', err);
-      throw err;
-    }
+    return await db.getProfile(userId);
   },
 
   // Emergency & Doctor Contacts
   getContacts: async (userId) => {
-    try {
-      const resp = await fetch(`${BASE_URL}/users/${userId}/contacts`);
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data.error || 'Server Error');
-      return data;
-    } catch (err) {
-      console.error('API Error [getContacts]:', err);
-      throw err;
-    }
+    return await db.getContacts(userId);
   },
 
   addContact: async (userId, contactData) => {
-    try {
-      const resp = await fetch(`${BASE_URL}/users/${userId}/contacts`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(contactData)
-      });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data.error || 'Server Error');
-      return data;
-    } catch (err) {
-      console.error('API Error [addContact]:', err);
-      throw err;
-    }
+    return await db.addContact(userId, contactData);
   },
 
   // Prescriptions
   getPrescriptions: async (userId) => {
-    try {
-      const resp = await fetch(`${BASE_URL}/users/${userId}/prescriptions`);
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data.error || 'Server Error');
-      return data;
-    } catch (err) {
-      console.error('API Error [getPrescriptions]:', err);
-      throw err;
-    }
+    return await db.getPrescriptions(userId);
   },
 
   addPrescription: async (userId, prescriptionData) => {
-    try {
-      const resp = await fetch(`${BASE_URL}/users/${userId}/prescriptions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(prescriptionData)
-      });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data.error || 'Server Error');
-      return data;
-    } catch (err) {
-      console.error('API Error [addPrescription]:', err);
-      throw err;
-    }
+    return await db.addPrescription(userId, prescriptionData);
   },
 
   // Mood Logs
   getMoods: async (userId) => {
-    try {
-      const resp = await fetch(`${BASE_URL}/users/${userId}/moods`);
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data.error || 'Server Error');
-      return data;
-    } catch (err) {
-      console.error('API Error [getMoods]:', err);
-      throw err;
-    }
+    return await db.getMoods(userId);
   },
 
   addMood: async (userId, moodData) => {
-    try {
-      const resp = await fetch(`${BASE_URL}/users/${userId}/moods`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(moodData)
-      });
-      const data = await resp.json();
-      if (!resp.ok) throw new Error(data.error || 'Server Error');
-      return data;
-    } catch (err) {
-      console.error('API Error [addMood]:', err);
-      throw err;
-    }
+    return await db.addMood(userId, moodData);
   },
 
   // Scanner & Interactions
