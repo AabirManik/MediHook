@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sanjeev AI - Home Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Noto+Serif:wght@700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-bright": "#fcfaee",
+              "on-secondary-container": "#5b6560",
+              "primary-container": "#1b4332",
+              "on-surface": "#1b1c15",
+              "error-container": "#ffdad6",
+              "surface-variant": "#e5e3d7",
+              "on-secondary-fixed-variant": "#3f4945",
+              "tertiary-container": "#cba72f",
+              "tertiary-fixed": "#ffe088",
+              "surface-tint": "#3f6653",
+              "on-secondary": "#ffffff",
+              "on-surface-variant": "#414844",
+              "surface-container-highest": "#e5e3d7",
+              "error": "#ba1a1a",
+              "secondary-fixed": "#dbe5df",
+              "secondary-container": "#d8e2dc",
+              "on-error": "#ffffff",
+              "background": "#fcfaee",
+              "tertiary-fixed-dim": "#e9c349",
+              "surface": "#fcfaee",
+              "on-tertiary": "#ffffff",
+              "surface-container-lowest": "#ffffff",
+              "inverse-on-surface": "#f3f1e5",
+              "surface-dim": "#dcdacf",
+              "on-tertiary-container": "#4e3d00",
+              "on-primary-fixed": "#002114",
+              "on-primary": "#ffffff",
+              "on-tertiary-fixed": "#241a00",
+              "on-error-container": "#93000a",
+              "outline-variant": "#c1c8c2",
+              "inverse-surface": "#303129",
+              "primary-fixed-dim": "#a5d0b9",
+              "on-background": "#1b1c15",
+              "outline": "#717973",
+              "secondary-fixed-dim": "#bfc9c3",
+              "surface-container": "#f0eee2",
+              "surface-container-low": "#f6f4e8",
+              "tertiary": "#735c00",
+              "surface-container-high": "#eae8dd",
+              "inverse-primary": "#a5d0b9",
+              "on-primary-fixed-variant": "#274e3d",
+              "primary": "#012d1d",
+              "secondary": "#57615c",
+              "on-secondary-fixed": "#151d1a",
+              "on-primary-container": "#86af99",
+              "on-tertiary-fixed-variant": "#574500",
+              "primary-fixed": "#c1ecd4"
+            },
+            fontFamily: {
+              "headline": ["Noto Serif"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #fcfaee;
+            color: #1b1c15;
+            font-family: 'Inter', sans-serif;
+        }
+        .lotus-bg {
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5c-2 8-10 12-10 12s-8-4-10-12c2 8 10 12 10 12s8 4 10 12c2-8 10-12 10-12s8 4 10-12c-2 8-10 12-10 12s-8-4-10-12z' fill='%231b4332' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E");
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen pb-32 lotus-bg">
+<!-- TopAppBar -->
+<header class="bg-[#FCFAEE]/80 dark:bg-[#1B1C15]/80 backdrop-blur-md docked full-width top-0 sticky z-50 transition-opacity">
+<div class="flex justify-between items-center px-6 py-4 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-primary-fixed overflow-hidden">
+<img alt="Ayurvedic Lotus Motif" class="w-8 h-8 opacity-90" data-alt="Stylized gold and green lotus flower icon with elegant symmetrical petals on a clean background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCGIhV_SacsGjxtbwDJBYxlMJa69GYY70o6iQ4amaDqiIj7dNsO8H6Vy69vkdAdXyHwitSUxunw3M2diSZocf7VdtgA_E8LP94z4sJFBBC2zi1hkYUlTTfVAg5KGYY0q80wfZue6oW6APVisia4B1BRbl4Yz9XMUpw1oxZmYDZbRsWDL-zfGSfWQlhqQSie0pPSTze02t5UkulswJBEIh2x50tmDVb-NgJ5lRlD73oqy2jyRQyqqBpMyvL3F98AKalEO5x0zHlIUg"/>
+</div>
+<h1 class="font-['Noto_Serif'] font-black text-[#1B4332] dark:text-[#C1ECD4] text-2xl tracking-tight">Sanjeev AI</h1>
+</div>
+<div class="text-[#1B4332] dark:text-[#C1ECD4] scale-95 active:duration-150 cursor-pointer">
+<span class="material-symbols-outlined text-3xl">account_circle</span>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-6 pt-8 space-y-10">
+<!-- Hero Greeting Section -->
+<section class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div class="max-w-xl">
+<h2 class="font-['Noto_Serif'] font-black text-5xl text-primary tracking-tight leading-tight">Namaste, Rahul</h2>
+<p class="text-on-surface-variant mt-3 text-lg font-medium">Your path to balance begins with mindful healing today.</p>
+</div>
+<!-- Prakriti/Safety Gauge (The "Asymmetric" Feature Card) -->
+<div class="bg-surface-container-lowest p-8 rounded-xl shadow-sm border border-outline-variant/10 flex flex-col items-center justify-center w-full md:w-64 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl text-primary">shield_with_heart</span>
+</div>
+<div class="relative w-32 h-32 flex items-center justify-center">
+<!-- Simple SVG Circular Gauge -->
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-secondary-container" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-primary-container" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-dasharray="364.4" stroke-dashoffset="54.6" stroke-linecap="round" stroke-width="10"></circle>
+</svg>
+<div class="absolute flex flex-col items-center">
+<span class="text-3xl font-bold text-primary">85</span>
+<span class="text-[10px] uppercase tracking-widest text-on-surface-variant">Safety</span>
+</div>
+</div>
+<h3 class="mt-4 font-bold text-primary tracking-wide text-sm">Medication Safety Score</h3>
+</div>
+</section>
+<!-- Quick Actions Bento Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Scan Prescription -->
+<div class="bg-primary-container text-on-primary rounded-xl p-8 flex flex-col justify-between min-h-[220px] transition-all hover:scale-[1.02] cursor-pointer shadow-lg shadow-primary-container/20">
+<span class="material-symbols-outlined text-4xl text-primary-fixed">document_scanner</span>
+<div>
+<h4 class="text-xl font-bold leading-tight">Scan Prescription</h4>
+<p class="text-primary-fixed/70 text-sm mt-2">AI-powered analysis of your Ayurvedic scripts.</p>
+</div>
+</div>
+<!-- Check Mood -->
+<div class="bg-surface-container-low text-primary rounded-xl p-8 flex flex-col justify-between min-h-[220px] transition-all hover:bg-surface-container-high cursor-pointer">
+<span class="material-symbols-outlined text-4xl text-tertiary">wb_sunny</span>
+<div>
+<h4 class="text-xl font-bold leading-tight">Check Mood</h4>
+<p class="text-on-surface-variant text-sm mt-2">Log your daily emotional and physical dosha balance.</p>
+</div>
+</div>
+<!-- View Alerts -->
+<div class="bg-surface-container-low text-primary rounded-xl p-8 flex flex-col justify-between min-h-[220px] transition-all hover:bg-surface-container-high cursor-pointer">
+<div class="relative">
+<span class="material-symbols-outlined text-4xl text-error">notifications_active</span>
+<span class="absolute top-0 left-8 w-3 h-3 bg-error rounded-full border-2 border-surface-container-low"></span>
+</div>
+<div>
+<h4 class="text-xl font-bold leading-tight">View Alerts</h4>
+<p class="text-on-surface-variant text-sm mt-2">2 active interactions detected in your current protocol.</p>
+</div>
+</div>
+</section>
+<!-- Summary Section: Next Dose -->
+<section class="bg-white rounded-xl p-1 overflow-hidden">
+<div class="bg-surface-container-lowest p-8 rounded-[20px] flex flex-col md:flex-row items-center justify-between gap-8">
+<div class="flex items-center gap-6">
+<div class="w-16 h-16 bg-tertiary-fixed rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl text-on-tertiary-fixed" style="font-variation-settings: 'FILL' 1;">pill</span>
+</div>
+<div>
+<h5 class="text-on-surface-variant font-medium text-sm uppercase tracking-widest">Your Next Dose</h5>
+<h3 class="font-['Noto_Serif'] text-3xl text-primary mt-1">Ashwagandha Churna</h3>
+<div class="flex gap-4 mt-3">
+<span class="flex items-center gap-1 text-on-surface-variant text-sm bg-surface-container px-3 py-1 rounded-full">
+<span class="material-symbols-outlined text-lg">schedule</span> 08:30 AM
+                            </span>
+<span class="flex items-center gap-1 text-on-surface-variant text-sm bg-secondary-container px-3 py-1 rounded-full">
+<span class="material-symbols-outlined text-lg">water_drop</span> with warm water
+                            </span>
+</div>
+</div>
+</div>
+<button class="bg-primary text-on-primary px-8 py-4 rounded-full font-bold text-sm tracking-wide shadow-xl shadow-primary/10 transition-transform active:scale-95">
+                    MARK AS TAKEN
+                </button>
+</div>
+</section>
+<!-- Insights Banner -->
+<section class="relative h-64 rounded-xl overflow-hidden group">
+<img alt="Ayurvedic Herbs" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="Premium flat lay of fresh Ayurvedic herbs, turmeric root, and wooden bowls on a textured linen surface with soft cinematic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBG5AMcOSnCys69_lYg7aO1ZjK8H1KQJaSFz9L2wwjsR3wj_E8K2NmRUhLHXkZf-zG9K58hD0kI6RMXOqcXAUrCusYPB4hbZnHuWiq5ncEmsF_kXkBOq3W9Rvz30_6T2RdVGEuS27T8-B4VsDwrPlDA9u1mk6295cId4NsM0CszOQtImq_ptOtznJT6AcskPr7vLvCSTT3o52X7ivQyOVuZ7wivAOBXoIAZKvzG-hmKoTyyumwdXO5VKglYHrlDqLRiUBcrGt9THg"/>
+<div class="absolute inset-0 bg-gradient-to-r from-primary/80 to-transparent flex flex-col justify-center px-12 text-white">
+<span class="text-tertiary-fixed font-bold tracking-widest uppercase text-xs mb-2">Weekly Wisdom</span>
+<h3 class="font-['Noto_Serif'] text-3xl max-w-md leading-snug">The Alchemy of Brahmi for Mental Clarity</h3>
+<p class="mt-4 text-primary-fixed/80 max-w-sm">Learn how to pair herbal boosters with your morning meditation.</p>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-2 bg-[#FCFAEE]/80 dark:bg-[#1B1C15]/80 backdrop-blur-md z-50 rounded-t-[24px] shadow-[0_-4px_24px_0_rgba(27,28,21,0.06)]">
+<!-- Home (Active) -->
+<a class="flex flex-col items-center justify-center bg-[#C1ECD4] dark:bg-[#1B3224] text-[#002114] dark:text-[#C1ECD4] rounded-[24px] px-5 py-2 transition-all group" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider mt-1">Home</span>
+</a>
+<!-- Scanner -->
+<a class="flex flex-col items-center justify-center text-[#414844] dark:text-[#C1C8C2] px-5 py-2 hover:bg-[#F6F4E8] dark:hover:bg-[#2A2D2A] rounded-[24px] transition-all" href="#">
+<span class="material-symbols-outlined">document_scanner</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider mt-1">Scanner</span>
+</a>
+<!-- Timeline -->
+<a class="flex flex-col items-center justify-center text-[#414844] dark:text-[#C1C8C2] px-5 py-2 hover:bg-[#F6F4E8] dark:hover:bg-[#2A2D2A] rounded-[24px] transition-all" href="#">
+<span class="material-symbols-outlined">timeline</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider mt-1">Timeline</span>
+</a>
+<!-- Mood -->
+<a class="flex flex-col items-center justify-center text-[#414844] dark:text-[#C1C8C2] px-5 py-2 hover:bg-[#F6F4E8] dark:hover:bg-[#2A2D2A] rounded-[24px] transition-all" href="#">
+<span class="material-symbols-outlined">wb_sunny</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider mt-1">Mood</span>
+</a>
+</nav>
+</body></html>

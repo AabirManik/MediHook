@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Noto+Serif:wght@700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-bright": "#fcfaee",
+              "on-secondary-container": "#5b6560",
+              "primary-container": "#1b4332",
+              "on-surface": "#1b1c15",
+              "error-container": "#ffdad6",
+              "surface-variant": "#e5e3d7",
+              "on-secondary-fixed-variant": "#3f4945",
+              "tertiary-container": "#cba72f",
+              "tertiary-fixed": "#ffe088",
+              "surface-tint": "#3f6653",
+              "on-secondary": "#ffffff",
+              "on-surface-variant": "#414844",
+              "surface-container-highest": "#e5e3d7",
+              "error": "#ba1a1a",
+              "secondary-fixed": "#dbe5df",
+              "secondary-container": "#d8e2dc",
+              "on-error": "#ffffff",
+              "background": "#fcfaee",
+              "tertiary-fixed-dim": "#e9c349",
+              "surface": "#fcfaee",
+              "on-tertiary": "#ffffff",
+              "surface-container-lowest": "#ffffff",
+              "inverse-on-surface": "#f3f1e5",
+              "surface-dim": "#dcdacf",
+              "on-tertiary-container": "#4e3d00",
+              "on-primary-fixed": "#002114",
+              "on-primary": "#ffffff",
+              "on-tertiary-fixed": "#241a00",
+              "on-error-container": "#93000a",
+              "outline-variant": "#c1c8c2",
+              "inverse-surface": "#303129",
+              "primary-fixed-dim": "#a5d0b9",
+              "on-background": "#1b1c15",
+              "outline": "#717973",
+              "secondary-fixed-dim": "#bfc9c3",
+              "surface-container": "#f0eee2",
+              "surface-container-low": "#f6f4e8",
+              "tertiary": "#735c00",
+              "surface-container-high": "#eae8dd",
+              "inverse-primary": "#a5d0b9",
+              "on-primary-fixed-variant": "#274e3d",
+              "primary": "#012d1d",
+              "secondary": "#57615c",
+              "on-secondary-fixed": "#151d1a",
+              "on-primary-container": "#86af99",
+              "on-tertiary-fixed-variant": "#574500",
+              "primary-fixed": "#c1ecd4"
+            },
+            fontFamily: {
+              "headline": ["Noto Serif"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #FCFAEE;
+            color: #1B1C15;
+            font-family: 'Inter', sans-serif;
+        }
+        .timeline-line {
+            background: linear-gradient(to bottom, #735C00 0%, #CBA72F 100%);
+            width: 2px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen pb-24">
+<!-- TopAppBar -->
+<nav class="bg-[#FCFAEE]/80 dark:bg-[#1B1C15]/80 backdrop-blur-md docked full-width top-0 sticky z-50 tonal-shift-bg flat no shadows">
+<div class="flex justify-between items-center px-6 py-4 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden">
+<img alt="Ayurvedic Lotus Motif" class="w-6 h-6 opacity-80" data-alt="minimalist botanical lotus flower illustration in deep forest green on a soft cream background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCW3DpAVo6gg0ecrl_zTU2tvBxqTCQ-gRUVDvbE5qf59w2Rex-rX7yO33CJn_9rBKjtGekucOXl3Yg7cR7TvXzDABiVps-bF5qjt92Q5CfjB9FGleokvK_-9FrKB2b3IF_xKwS30PC4jqEyqy6LTjEJQd8MjECFP0_DRktw8m7WW8dtppBtBsCceA1Vyvk8BhU-TE7Ja2j39x8zEhjYO08IyOMob6AHKvdm_0YtipIYw06476hjfDGNa_PYjhWN-uIx55l_jD27PA"/>
+</div>
+<span class="text-[#1B4332] dark:text-[#C1ECD4] font-['Noto_Serif'] font-black text-2xl tracking-tight">Sanjeev AI</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-[#1B4332] dark:text-[#C1ECD4] hover:opacity-80 transition-opacity scale-95 active:duration-150">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</nav>
+<main class="max-w-4xl mx-auto px-6 pt-8">
+<!-- Header Section -->
+<header class="mb-12">
+<h1 class="font-['Noto_Serif'] font-bold text-4xl md:text-5xl text-primary leading-tight">Your Health Journey</h1>
+<p class="text-on-surface-variant mt-2 font-body max-w-xl">Mapping your holistic progress and identifying vital correlations for your well-being.</p>
+</header>
+<!-- Bento Layout: Insights & Timeline -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Timeline Column -->
+<div class="lg:col-span-8 space-y-2">
+<div class="relative pl-10 pr-4">
+<!-- The Soft Gold Timeline Line -->
+<div class="absolute left-[19px] top-4 bottom-4 timeline-line opacity-30 rounded-full"></div>
+<!-- Timeline Item 1 -->
+<div class="relative mb-12">
+<div class="absolute -left-10 mt-1.5 w-5 h-5 rounded-full bg-primary border-4 border-surface-container-low ring-4 ring-primary/5 z-10"></div>
+<div class="bg-surface-container-low p-6 rounded-xl transition-all hover:bg-surface-container-lowest">
+<span class="text-xs font-label uppercase tracking-widest text-on-surface-variant block mb-2">March 12, 2024</span>
+<h3 class="font-headline text-xl text-primary mb-1">Started Drug X</h3>
+<p class="text-on-surface-variant text-sm">Initial prescription: 50mg daily. Aimed at balancing Pitta dosha energy.</p>
+</div>
+</div>
+<!-- Timeline Item 2 -->
+<div class="relative mb-12">
+<div class="absolute -left-10 mt-1.5 w-5 h-5 rounded-full bg-tertiary border-4 border-surface-container-low ring-4 ring-tertiary/5 z-10"></div>
+<div class="bg-surface-container-low p-6 rounded-xl transition-all hover:bg-surface-container-lowest">
+<div class="flex justify-between items-start">
+<div>
+<span class="text-xs font-label uppercase tracking-widest text-on-surface-variant block mb-2">March 30, 2024</span>
+<h3 class="font-headline text-xl text-primary mb-1">Mood Check-in: Low</h3>
+<p class="text-on-surface-variant text-sm">Reported persistent lethargy and decreased motivation levels.</p>
+</div>
+<span class="material-symbols-outlined text-tertiary" data-icon="wb_sunny">wb_sunny</span>
+</div>
+</div>
+</div>
+<!-- Timeline Item 3 -->
+<div class="relative mb-6">
+<div class="absolute -left-10 mt-1.5 w-5 h-5 rounded-full bg-primary border-4 border-surface-container-low ring-4 ring-primary/5 z-10"></div>
+<div class="bg-surface-container-low p-6 rounded-xl transition-all hover:bg-surface-container-lowest">
+<span class="text-xs font-label uppercase tracking-widest text-on-surface-variant block mb-2">April 05, 2024</span>
+<h3 class="font-headline text-xl text-primary mb-1">Started Drug Y</h3>
+<p class="text-on-surface-variant text-sm">Supplementary dosage added to counteract metabolic fluctuations.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- AI Insight Column -->
+<aside class="lg:col-span-4">
+<div class="sticky top-24 space-y-6">
+<!-- Correlation Card -->
+<div class="bg-primary-container text-on-primary-fixed p-6 rounded-xl overflow-hidden relative group">
+<!-- Decorative Leaf Shape Overlay -->
+<div class="absolute -right-4 -top-4 opacity-10 group-hover:rotate-12 transition-transform">
+<span class="material-symbols-outlined text-9xl" data-icon="psychology">psychology</span>
+</div>
+<div class="relative z-10">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary-fixed" data-icon="auto_awesome">auto_awesome</span>
+<span class="font-label text-xs uppercase tracking-widest text-primary-fixed">AI Analysis</span>
+</div>
+<h4 class="font-headline text-2xl text-white mb-4 leading-snug">Mood changes correlate with Drug X start date.</h4>
+<div class="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/5">
+<p class="text-primary-fixed text-sm leading-relaxed">
+                                    Observation: <span class="text-white font-semibold">18 days after</span> starting Drug X, a notable shift in emotional baseline was detected.
+                                </p>
+</div>
+<button class="mt-6 w-full py-3 bg-primary-fixed text-on-primary-fixed font-semibold rounded-full hover:opacity-90 transition-all text-sm">
+                                View Full Report
+                            </button>
+</div>
+</div>
+<!-- Stats Card -->
+<div class="bg-surface-container-low p-6 rounded-xl">
+<h5 class="font-label text-xs uppercase tracking-widest text-on-surface-variant mb-4">Dosha Balance</h5>
+<div class="flex items-end justify-between gap-2">
+<div class="flex-1 bg-secondary-container h-24 rounded-t-full relative">
+<div class="absolute bottom-0 w-full bg-primary rounded-t-full h-3/4"></div>
+<span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-label text-on-surface-variant">VATA</span>
+</div>
+<div class="flex-1 bg-secondary-container h-24 rounded-t-full relative">
+<div class="absolute bottom-0 w-full bg-tertiary rounded-t-full h-1/2"></div>
+<span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-label text-on-surface-variant">PITTA</span>
+</div>
+<div class="flex-1 bg-secondary-container h-24 rounded-t-full relative">
+<div class="absolute bottom-0 w-full bg-primary-container rounded-t-full h-2/3"></div>
+<span class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-label text-on-surface-variant">KAPHA</span>
+</div>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-2 bg-[#FCFAEE]/80 dark:bg-[#1B1C15]/80 backdrop-blur-md z-50 rounded-t-[24px] shadow-[0_-4px_24px_0_rgba(27,28,21,0.06)] surface-tonal-step no-border">
+<!-- Home -->
+<a class="flex flex-col items-center justify-center text-[#414844] dark:text-[#C1C8C2] px-5 py-2 hover:bg-[#F6F4E8] dark:hover:bg-[#2A2D2A] rounded-[24px] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider mt-1">Home</span>
+</a>
+<!-- Scanner -->
+<a class="flex flex-col items-center justify-center text-[#414844] dark:text-[#C1C8C2] px-5 py-2 hover:bg-[#F6F4E8] dark:hover:bg-[#2A2D2A] rounded-[24px] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="document_scanner">document_scanner</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider mt-1">Scanner</span>
+</a>
+<!-- Timeline (ACTIVE) -->
+<a class="flex flex-col items-center justify-center bg-[#C1ECD4] dark:bg-[#1B4332] text-[#002114] dark:text-[#C1ECD4] rounded-[24px] px-5 py-2 transition-all Active: scale-90 duration-200 ease-out" href="#">
+<span class="material-symbols-outlined" data-icon="timeline">timeline</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider mt-1">Timeline</span>
+</a>
+<!-- Mood -->
+<a class="flex flex-col items-center justify-center text-[#414844] dark:text-[#C1C8C2] px-5 py-2 hover:bg-[#F6F4E8] dark:hover:bg-[#2A2D2A] rounded-[24px] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="wb_sunny">wb_sunny</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider mt-1">Mood</span>
+</a>
+</nav>
+</body></html>

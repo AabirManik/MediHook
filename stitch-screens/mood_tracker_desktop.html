@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sanjeev AI - Mood Tracker</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Noto+Serif:wght@700;900&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-bright": "#fcfaee",
+              "on-secondary-container": "#5b6560",
+              "primary-container": "#1b4332",
+              "on-surface": "#1b1c15",
+              "error-container": "#ffdad6",
+              "surface-variant": "#e5e3d7",
+              "on-secondary-fixed-variant": "#3f4945",
+              "tertiary-container": "#cba72f",
+              "tertiary-fixed": "#ffe088",
+              "surface-tint": "#3f6653",
+              "on-secondary": "#ffffff",
+              "on-surface-variant": "#414844",
+              "surface-container-highest": "#e5e3d7",
+              "error": "#ba1a1a",
+              "secondary-fixed": "#dbe5df",
+              "secondary-container": "#d8e2dc",
+              "on-error": "#ffffff",
+              "background": "#fcfaee",
+              "tertiary-fixed-dim": "#e9c349",
+              "surface": "#fcfaee",
+              "on-tertiary": "#ffffff",
+              "surface-container-lowest": "#ffffff",
+              "inverse-on-surface": "#f3f1e5",
+              "surface-dim": "#dcdacf",
+              "on-tertiary-container": "#4e3d00",
+              "on-primary-fixed": "#002114",
+              "on-primary": "#ffffff",
+              "on-tertiary-fixed": "#241a00",
+              "on-error-container": "#93000a",
+              "outline-variant": "#c1c8c2",
+              "inverse-surface": "#303129",
+              "primary-fixed-dim": "#a5d0b9",
+              "on-background": "#1b1c15",
+              "outline": "#717973",
+              "secondary-fixed-dim": "#bfc9c3",
+              "surface-container": "#f0eee2",
+              "surface-container-low": "#f6f4e8",
+              "tertiary": "#735c00",
+              "surface-container-high": "#eae8dd",
+              "inverse-primary": "#a5d0b9",
+              "on-primary-fixed-variant": "#274e3d",
+              "primary": "#012d1d",
+              "secondary": "#57615c",
+              "on-secondary-fixed": "#151d1a",
+              "on-primary-container": "#86af99",
+              "on-tertiary-fixed-variant": "#574500",
+              "primary-fixed": "#c1ecd4"
+            },
+            fontFamily: {
+              "headline": ["Noto Serif"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "1.5rem", "2xl": "2rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
+    }
+.lotus-path {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: dash 3s ease-in-out forwards
+    }
+@keyframes dash {
+    to {
+        stroke-dashoffset: 0;
+        }
+    }
+.parchment-texture {
+    background-color: #fcfbf4;
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuDUV4OnsWbgBLceg9KwU5vqm_vznPtMDq-VKa_dZs4RBgMUtccCKIBM2xDsZZTz-YPeKzzihiGw8KD9ZEkTdbGhrJm6yLOt6FC15cZaPmD6HqxDkx-ekjtk3na_rdHUM7pbaOhyJfijY6JVMLaBC83Gs0c1-3i99sSiGYkJEQF5U9nsy80JbEePEqodQyIA25e32QTisNU-PbRoEu3hNexV_NMuZJ6bzXVDgLOl0bRH2uv63Kr3C6qQUcrbZ6UUnMs29SIknCw0Ow)
+    }
+.glass-nav {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px)
+    }
+.no-scrollbar::-webkit-scrollbar {
+    display: none
+    }
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none
+    }</style>
+</head>
+<body class="bg-surface font-body text-on-surface min-h-screen">
+<!-- TopAppBar -->
+<header class="bg-surface/80 backdrop-blur-md sticky top-0 z-50 border-b border-outline-variant/30">
+<div class="flex justify-between items-center px-8 py-4 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center overflow-hidden shadow-sm">
+<img alt="Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVeI7saDYgGS5SNuzyHjcBmOXOG9utoB8CvZOhDGOGW_3qKWzdvtOrSYiH9Z72t6Ddlp-h1kzHsMTnOS2H_kqC3gk9dOXrgGLUdoQhK_Hg4bWTO42DO6DQ9YOBGEz1Lk9QF8Z9vvCbHVZqKCKYQGZII5RXDNJ4yxECd5Rr-W2_6ew0VGebe1Ic71ZLmmKVfkkFyLM7Xq7NLY7xXgYC3kSPxW8O9-VZVbbiq0BCVzxv_EH-KgucG3mRc8oosBMAxkf15ouanUATPA"/>
+</div>
+<h1 class="font-headline font-black text-primary text-2xl tracking-tight">Sanjeev AI</h1>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-sm font-semibold uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">Home</a>
+<a class="text-sm font-semibold uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">Scanner</a>
+<a class="text-sm font-semibold uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">Timeline</a>
+<a class="text-sm font-semibold uppercase tracking-widest text-primary border-b-2 border-primary pb-1" href="#">Mood</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-surface-container rounded-full transition-colors">
+<span class="material-symbols-outlined text-primary" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-8 py-12">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+<!-- Left Column: Mood Selection (Primary Focal Point) -->
+<section class="lg:col-span-5 space-y-12 lg:sticky lg:top-28">
+<div class="space-y-4">
+<h2 class="font-headline text-5xl md:text-6xl text-primary tracking-tight leading-tight">
+                        How are you feeling today?
+                    </h2>
+<p class="text-on-surface-variant text-lg max-w-md">Reflect on your current energy state. Your awareness is the first step toward balance.</p>
+</div>
+<div class="grid grid-cols-5 gap-4 py-8">
+<!-- Emoji Inputs -->
+<button class="flex flex-col items-center gap-4 group transition-all">
+<div class="w-full aspect-square rounded-2xl bg-surface-container-low flex items-center justify-center group-hover:bg-primary/10 transition-all duration-300 border border-transparent group-hover:border-primary/20">
+<span class="material-symbols-outlined text-4xl text-on-surface-variant group-hover:text-primary" data-icon="sentiment_very_dissatisfied">sentiment_very_dissatisfied</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant group-hover:text-primary">Low</span>
+</button>
+<button class="flex flex-col items-center gap-4 group transition-all">
+<div class="w-full aspect-square rounded-2xl bg-surface-container-low flex items-center justify-center group-hover:bg-primary/10 transition-all duration-300 border border-transparent group-hover:border-primary/20">
+<span class="material-symbols-outlined text-4xl text-on-surface-variant group-hover:text-primary" data-icon="sentiment_dissatisfied">sentiment_dissatisfied</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant group-hover:text-primary">Unsteady</span>
+</button>
+<button class="flex flex-col items-center gap-4 group transition-all">
+<div class="w-full aspect-square rounded-2xl bg-surface-container-low flex items-center justify-center group-hover:bg-primary/10 transition-all duration-300 border border-transparent group-hover:border-primary/20">
+<span class="material-symbols-outlined text-4xl text-on-surface-variant group-hover:text-primary" data-icon="sentiment_neutral">sentiment_neutral</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant group-hover:text-primary">Neutral</span>
+</button>
+<button class="flex flex-col items-center gap-4 group transition-all">
+<div class="w-full aspect-square rounded-2xl bg-primary shadow-xl shadow-primary/20 flex items-center justify-center border border-primary">
+<span class="material-symbols-outlined text-4xl text-white" data-icon="sentiment_satisfied">sentiment_satisfied</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-widest text-primary">Calm</span>
+</button>
+<button class="flex flex-col items-center gap-4 group transition-all">
+<div class="w-full aspect-square rounded-2xl bg-surface-container-low flex items-center justify-center group-hover:bg-primary/10 transition-all duration-300 border border-transparent group-hover:border-primary/20">
+<span class="material-symbols-outlined text-4xl text-on-surface-variant group-hover:text-primary" data-icon="sentiment_very_satisfied">sentiment_very_satisfied</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant group-hover:text-primary">High</span>
+</button>
+</div>
+<div class="flex flex-wrap gap-4">
+<button class="flex items-center gap-3 px-8 py-4 bg-tertiary-fixed text-on-tertiary-fixed font-bold rounded-xl hover:shadow-md transition-all active:scale-95 border border-tertiary/20">
+<span class="material-symbols-outlined" data-icon="mic" style="font-variation-settings: 'FILL' 1;">mic</span>
+<span>Record Voice Note</span>
+</button>
+<button class="flex items-center gap-3 px-8 py-4 bg-white text-primary font-bold rounded-xl hover:shadow-md transition-all border border-outline-variant">
+<span class="material-symbols-outlined" data-icon="edit_note">edit_note</span>
+<span>Write Journal</span>
+</button>
+</div>
+</section>
+<!-- Right Column: Visualization & Insights -->
+<section class="lg:col-span-7 space-y-8">
+<!-- Graph Section -->
+<div class="parchment-texture rounded-3xl p-10 shadow-sm border border-outline-variant/30 relative overflow-hidden">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between mb-12 gap-4 relative z-10">
+<div>
+<h3 class="font-headline text-2xl text-primary font-bold">Weekly Mood Trend</h3>
+<p class="text-on-surface-variant text-sm mt-1">Your energy is stabilizing in the <span class="text-primary font-semibold">Pitta zone</span>.</p>
+</div>
+<div class="flex items-center gap-3 bg-white/50 px-4 py-2 rounded-full border border-outline-variant/50">
+<span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
+<span class="text-xs font-bold uppercase tracking-widest text-primary">Status: Harmonic</span>
+</div>
+</div>
+<!-- SVG Graph - High Fidelity -->
+<div class="w-full relative h-72">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 400 150">
+<defs>
+<lineargradient id="line-grad" x1="0%" x2="100%" y1="0%" y2="0%">
+<stop offset="0%" stop-color="#735C00"></stop>
+<stop offset="100%" stop-color="#1B4332"></stop>
+</lineargradient>
+<lineargradient id="fill-grad" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#1B4332" stop-opacity="0.15"></stop>
+<stop offset="100%" stop-color="#1B4332" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<!-- Grid -->
+<g class="stroke-outline-variant/20" stroke-dasharray="4 4" stroke-width="0.5">
+<line x1="0" x2="400" y1="30" y2="30"></line>
+<line x1="0" x2="400" y1="75" y2="75"></line>
+<line x1="0" x2="400" y1="120" y2="120"></line>
+</g>
+<!-- Path -->
+<path class="lotus-path" d="M0,110 C40,110 60,40 100,40 C140,40 160,130 200,130 C240,130 260,70 300,70 C340,70 360,90 400,90" fill="none" stroke="url(#line-grad)" stroke-linecap="round" stroke-width="3"></path>
+<path d="M0,110 C40,110 60,40 100,40 C140,40 160,130 200,130 C240,130 260,70 300,70 C340,70 360,90 400,90 V150 H0 Z" fill="url(#fill-grad)"></path>
+<!-- Interactive Points -->
+<circle class="hover:r-6 transition-all cursor-pointer shadow-lg" cx="100" cy="40" fill="#735C00" r="4"></circle>
+<circle class="hover:r-6 transition-all cursor-pointer shadow-lg" cx="200" cy="130" fill="#735C00" r="4"></circle>
+<circle class="hover:r-6 transition-all cursor-pointer shadow-lg" cx="300" cy="70" fill="#1B4332" r="4"></circle>
+</svg>
+<!-- X-Axis Labels -->
+<div class="flex justify-between mt-6 text-[10px] font-bold uppercase tracking-[0.2em] text-outline px-2">
+<span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+</div>
+</div>
+</div>
+<!-- Insights Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="bg-white p-8 rounded-3xl flex flex-col gap-6 shadow-sm border border-outline-variant/30 hover:shadow-md transition-shadow">
+<div class="w-12 h-12 bg-primary-container text-white flex items-center justify-center rounded-2xl">
+<span class="material-symbols-outlined" data-icon="eco">eco</span>
+</div>
+<div>
+<h4 class="font-headline text-xl text-primary font-bold">Ayurvedic Insight</h4>
+<p class="text-on-surface-variant mt-2 leading-relaxed">Your midweek dip suggests an increase in <span class="font-semibold text-primary">Vata</span>. Ground your energy tonight with roasted root vegetables and a warm sesame oil massage.</p>
+</div>
+</div>
+<div class="bg-white p-8 rounded-3xl flex flex-col gap-6 shadow-sm border border-outline-variant/30 hover:shadow-md transition-shadow">
+<div class="w-12 h-12 bg-tertiary text-white flex items-center justify-center rounded-2xl">
+<span class="material-symbols-outlined" data-icon="bedtime" style="font-variation-settings: 'FILL' 1;">bedtime</span>
+</div>
+<div>
+<h4 class="font-headline text-xl text-primary font-bold">Sleep Synergy</h4>
+<p class="text-on-surface-variant mt-2 leading-relaxed">Your highest mood peaks correlate directly with <span class="font-semibold text-primary">8+ hours</span> of restorative rest. Aim for a digital sunset by 9 PM tonight.</p>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Bottom Nav (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-2 bg-surface/90 backdrop-blur-xl z-50 border-t border-outline-variant/30 glass-nav">
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-2" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="text-[10px] uppercase tracking-wider mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-2" href="#">
+<span class="material-symbols-outlined" data-icon="document_scanner">document_scanner</span>
+<span class="text-[10px] uppercase tracking-wider mt-1">Scanner</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-5 py-2" href="#">
+<span class="material-symbols-outlined" data-icon="timeline">timeline</span>
+<span class="text-[10px] uppercase tracking-wider mt-1">Timeline</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary text-white rounded-2xl px-5 py-2" href="#">
+<span class="material-symbols-outlined" data-icon="wb_sunny" style="font-variation-settings: 'FILL' 1;">wb_sunny</span>
+<span class="text-[10px] uppercase tracking-wider mt-1">Mood</span>
+</a>
+</nav>
+</body></html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sanjeev AI - Prescription Scanner</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Noto+Serif:wght@700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-bright": "#fcfaee",
+              "on-secondary-container": "#5b6560",
+              "primary-container": "#1b4332",
+              "on-surface": "#1b1c15",
+              "error-container": "#ffdad6",
+              "surface-variant": "#e5e3d7",
+              "on-secondary-fixed-variant": "#3f4945",
+              "tertiary-container": "#cba72f",
+              "tertiary-fixed": "#ffe088",
+              "surface-tint": "#3f6653",
+              "on-secondary": "#ffffff",
+              "on-surface-variant": "#414844",
+              "surface-container-highest": "#e5e3d7",
+              "error": "#ba1a1a",
+              "secondary-fixed": "#dbe5df",
+              "secondary-container": "#d8e2dc",
+              "on-error": "#ffffff",
+              "background": "#fcfaee",
+              "tertiary-fixed-dim": "#e9c349",
+              "surface": "#fcfaee",
+              "on-tertiary": "#ffffff",
+              "surface-container-lowest": "#ffffff",
+              "inverse-on-surface": "#f3f1e5",
+              "surface-dim": "#dcdacf",
+              "on-tertiary-container": "#4e3d00",
+              "on-primary-fixed": "#002114",
+              "on-primary": "#ffffff",
+              "on-tertiary-fixed": "#241a00",
+              "on-error-container": "#93000a",
+              "outline-variant": "#c1c8c2",
+              "inverse-surface": "#303129",
+              "primary-fixed-dim": "#a5d0b9",
+              "on-background": "#1b1c15",
+              "outline": "#717973",
+              "secondary-fixed-dim": "#bfc9c3",
+              "surface-container": "#f0eee2",
+              "surface-container-low": "#f6f4e8",
+              "tertiary": "#735c00",
+              "surface-container-high": "#eae8dd",
+              "inverse-primary": "#a5d0b9",
+              "on-primary-fixed-variant": "#274e3d",
+              "primary": "#012d1d",
+              "secondary": "#57615c",
+              "on-secondary-fixed": "#151d1a",
+              "on-primary-container": "#86af99",
+              "on-tertiary-fixed-variant": "#574500",
+              "primary-fixed": "#c1ecd4"
+            },
+            fontFamily: {
+              "headline": ["Noto Serif"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .scanner-overlay {
+        background: radial-gradient(circle, transparent 60%, rgba(27, 67, 50, 0.4) 100%);
+      }
+      .glass-card {
+        background: rgba(252, 250, 238, 0.8);
+        backdrop-filter: blur(12px);
+      }
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- TopAppBar -->
+<nav class="bg-[#FCFAEE]/80 dark:bg-[#1B1C15]/80 backdrop-blur-md docked full-width top-0 sticky z-50 no-border tonal-shift-bg">
+<div class="flex justify-between items-center px-6 py-4 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden">
+<img alt="Avatar" class="w-8 h-8 opacity-80" data-alt="Stylized abstract lotus motif in deep forest green and soft sage colors representing ayurvedic balance" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRsmJQr1dy3QXDueA9tCOng90cdoGC6_CJOeCovbSJGf_dwTLrvNqstX13Fl9Fl1kNu5mc3WF6gVp7SFfztv8_z--86-jN1jPu7GXa17U-pY7B8m7kcbNt8W4V_MIS-PuTZCXre4ZKZvuedUwYd4saLMWReTd1ATQKoB0ETar0TPGZsXz6w04BFtGKkG_4WzlBtyMtRBO-DWm8_7O49PtwjKzSajCftJ3If3dvVWwpRu1nSXpQYqUN0u-Oes4DvAWePHhPFm8A_A"/>
+</div>
+<h1 class="font-['Noto_Serif'] font-black text-[#1B4332] dark:text-[#C1ECD4] text-2xl tracking-tight">Sanjeev AI</h1>
+</div>
+<div class="flex items-center">
+<button class="material-symbols-outlined text-[#414844] dark:text-[#C1C8C2] hover:opacity-80 transition-opacity scale-95 active:duration-150 text-2xl" data-icon="account_circle">account_circle</button>
+</div>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="relative min-h-[calc(100vh-160px)] flex flex-col items-center justify-center px-6 pb-32">
+<!-- Camera Viewfinder Placeholder -->
+<div class="relative w-full max-w-md aspect-[3/4] rounded-[32px] overflow-hidden bg-surface-container-highest shadow-2xl">
+<!-- Simulated Camera Feed -->
+<img alt="Camera Viewfinder" class="w-full h-full object-cover grayscale-[0.2]" data-alt="Blurred background of a wooden table with a white paper prescription and various dried herbs scattered artistically" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1nFcHhAUUEFuWj1ykkVKgagZB14a8UGCjUHYwnjKpF1m3fc09VzP3uykXFYl8BjhBqcjryaP5D4uprXkrye8mHhAMFogCd1PgIihL3rsvIKJ-v7dK9IFZyZ2K-vg1q2KG5x1shc_CjsEq47a9yE-ZK62KA2bePhX-fJK-mYYosXMTozxPw2D4RPFluoqXoqdJeGx6eA_uRYG1NMMdLapV06P2kLhKK-Kh7GcTrJyrqA8YWCqwOzJX7VqmqeX60Jo9fWRLH2i4cw"/>
+<!-- Scanning Overlay -->
+<div class="absolute inset-0 scanner-overlay flex flex-col items-center justify-center">
+<!-- The Frame -->
+<div class="relative w-4/5 h-3/5 border-2 border-primary-fixed/40 rounded-[24px] flex items-center justify-center">
+<!-- Corner Leaf Motifs (Asymmetric/Organic) -->
+<div class="absolute -top-4 -left-4 text-primary-fixed opacity-60">
+<span class="material-symbols-outlined text-5xl" style="font-variation-settings: 'FILL' 1;">eco</span>
+</div>
+<div class="absolute -bottom-4 -right-4 text-primary-fixed opacity-60 transform rotate-180">
+<span class="material-symbols-outlined text-5xl" style="font-variation-settings: 'FILL' 1;">eco</span>
+</div>
+<!-- Scanning Line -->
+<div class="absolute top-0 left-4 right-4 h-[2px] bg-primary-fixed shadow-[0_0_15px_rgba(193,236,212,0.8)] opacity-60"></div>
+<div class="text-center px-6">
+<p class="text-white/90 text-sm font-medium tracking-wide drop-shadow-md">Align your prescription within the frame</p>
+</div>
+</div>
+<!-- Guidance UI -->
+<div class="mt-8 flex gap-4">
+<button class="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/20 hover:bg-white/30 transition-all">
+<span class="material-symbols-outlined">flash_on</span>
+</button>
+<button class="w-14 h-14 rounded-full bg-primary text-white flex items-center justify-center shadow-lg transform active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-3xl">photo_camera</span>
+</button>
+<button class="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/20 hover:bg-white/30 transition-all">
+<span class="material-symbols-outlined">history</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Secondary Action Section -->
+<div class="mt-8 w-full max-w-md flex flex-col gap-4 items-center">
+<button class="flex items-center gap-2 bg-secondary-container text-primary px-8 py-4 rounded-full font-medium hover:bg-secondary-fixed transition-colors active:scale-95 duration-150 w-full justify-center">
+<span class="material-symbols-outlined">upload_file</span>
+<span>Upload from Gallery</span>
+</button>
+<div class="flex items-center gap-2 text-on-surface-variant/60 py-2">
+<span class="material-symbols-outlined text-sm">security</span>
+<span class="text-[11px] uppercase tracking-widest font-semibold">Privacy Protected • AI Analysis</span>
+</div>
+</div>
+<!-- Decorative Ayurvedic Element -->
+<div class="absolute -z-10 top-20 -right-20 opacity-10">
+<span class="material-symbols-outlined text-[200px]" style="font-variation-settings: 'FILL' 1;">spa</span>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-2 bg-[#FCFAEE]/80 dark:bg-[#1B1C15]/80 backdrop-blur-md z-50 rounded-t-[24px] shadow-[0_-4px_24px_0_rgba(27,28,21,0.06)]">
+<!-- Home -->
+<a class="flex flex-col items-center justify-center text-[#414844] dark:text-[#C1C8C2] px-5 py-2 hover:bg-[#F6F4E8] dark:hover:bg-[#2A2D2A] rounded-[24px] transition-all" href="#">
+<span class="material-symbols-outlined text-2xl" data-icon="home">home</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider mt-1">Home</span>
+</a>
+<!-- Scanner (ACTIVE) -->
+<a class="flex flex-col items-center justify-center bg-[#C1ECD4] dark:bg-[#1B4332] text-[#002114] dark:text-[#C1ECD4] rounded-[24px] px-5 py-2 transition-all shadow-sm" href="#">
+<span class="material-symbols-outlined text-2xl" data-icon="document_scanner" style="font-variation-settings: 'FILL' 1;">document_scanner</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider mt-1">Scanner</span>
+</a>
+<!-- Timeline -->
+<a class="flex flex-col items-center justify-center text-[#414844] dark:text-[#C1C8C2] px-5 py-2 hover:bg-[#F6F4E8] dark:hover:bg-[#2A2D2A] rounded-[24px] transition-all" href="#">
+<span class="material-symbols-outlined text-2xl" data-icon="timeline">timeline</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider mt-1">Timeline</span>
+</a>
+<!-- Mood -->
+<a class="flex flex-col items-center justify-center text-[#414844] dark:text-[#C1C8C2] px-5 py-2 hover:bg-[#F6F4E8] dark:hover:bg-[#2A2D2A] rounded-[24px] transition-all" href="#">
+<span class="material-symbols-outlined text-2xl" data-icon="wb_sunny">wb_sunny</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider mt-1">Mood</span>
+</a>
+</nav>
+</body></html>

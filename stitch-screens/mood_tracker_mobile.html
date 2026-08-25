@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sanjeev AI - Mood Tracker</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Noto+Serif:wght@700;900&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-bright": "#fcfaee",
+              "on-secondary-container": "#5b6560",
+              "primary-container": "#1b4332",
+              "on-surface": "#1b1c15",
+              "error-container": "#ffdad6",
+              "surface-variant": "#e5e3d7",
+              "on-secondary-fixed-variant": "#3f4945",
+              "tertiary-container": "#cba72f",
+              "tertiary-fixed": "#ffe088",
+              "surface-tint": "#3f6653",
+              "on-secondary": "#ffffff",
+              "on-surface-variant": "#414844",
+              "surface-container-highest": "#e5e3d7",
+              "error": "#ba1a1a",
+              "secondary-fixed": "#dbe5df",
+              "secondary-container": "#d8e2dc",
+              "on-error": "#ffffff",
+              "background": "#fcfaee",
+              "tertiary-fixed-dim": "#e9c349",
+              "surface": "#fcfaee",
+              "on-tertiary": "#ffffff",
+              "surface-container-lowest": "#ffffff",
+              "inverse-on-surface": "#f3f1e5",
+              "surface-dim": "#dcdacf",
+              "on-tertiary-container": "#4e3d00",
+              "on-primary-fixed": "#002114",
+              "on-primary": "#ffffff",
+              "on-tertiary-fixed": "#241a00",
+              "on-error-container": "#93000a",
+              "outline-variant": "#c1c8c2",
+              "inverse-surface": "#303129",
+              "primary-fixed-dim": "#a5d0b9",
+              "on-background": "#1b1c15",
+              "outline": "#717973",
+              "secondary-fixed-dim": "#bfc9c3",
+              "surface-container": "#f0eee2",
+              "surface-container-low": "#f6f4e8",
+              "tertiary": "#735c00",
+              "surface-container-high": "#eae8dd",
+              "inverse-primary": "#a5d0b9",
+              "on-primary-fixed-variant": "#274e3d",
+              "primary": "#012d1d",
+              "secondary": "#57615c",
+              "on-secondary-fixed": "#151d1a",
+              "on-primary-container": "#86af99",
+              "on-tertiary-fixed-variant": "#574500",
+              "primary-fixed": "#c1ecd4"
+            },
+            fontFamily: {
+              "headline": ["Noto Serif"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "1.5rem", "2xl": "2rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>.material-symbols-outlined {
+    font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24
+    }
+.lotus-path {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 0
+    }
+.parchment-texture {
+    background-color: #f6f4e8;
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuA2P-kp7p7O_6N6IjftEgjmDNtqK84W2Jjlqk0IW8blQAvnCyPfTUzshKgXRUct81v9pPnQ48rIAk-dt_uKgMsWKMGiR5011Bbco8iH_0gLqAOJrePKq3dMAs7-HbrMLdbY0WEB4pw7wCPKPQxu4kAN2a_TdIRNBfxP9jfwCtRhGRc-P0-ld3hd1k73A4WlXMgM4_EmDF0T26aJP1LgZyE4649-ELTVpE0lEMUQMA7bq7GzFHHYytvWRIO1tAyTSm7Vl02VbPiAWQ)
+    }
+.glass-nav {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px)
+    }</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="bg-[#FCFAEE]/80 dark:bg-[#1B1C15]/80 backdrop-blur-md docked full-width top-0 sticky z-50 tonal-shift-bg">
+<div class="flex justify-between items-center px-6 py-4 w-full max-w-7xl mx-auto">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center overflow-hidden">
+<img alt="Avatar" class="w-full h-full object-cover" data-alt="minimalist botanical lotus illustration in deep forest green and gold on a soft parchment background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVeI7saDYgGS5SNuzyHjcBmOXOG9utoB8CvZOhDGOGW_3qKWzdvtOrSYiH9Z72t6Ddlp-h1kzHsMTnOS2H_kqC3gk9dOXrgGLUdoQhK_Hg4bWTO42DO6DQ9YOBGEz1Lk9QF8Z9vvCbHVZqKCKYQGZII5RXDNJ4yxECd5Rr-W2_6ew0VGebe1Ic71ZLmmKVfkkFyLM7Xq7NLY7xXgYC3kSPxW8O9-VZVbbiq0BCVzxv_EH-KgucG3mRc8oosBMAxkf15ouanUATPA"/>
+</div>
+<h1 class="font-['Noto_Serif'] font-black text-[#1B4332] dark:text-[#C1ECD4] text-2xl tracking-tight">Sanjeev AI</h1>
+</div>
+<div class="flex items-center gap-4 text-[#1B4332] dark:text-[#C1ECD4]">
+<button class="hover:opacity-80 transition-opacity scale-95 active:duration-150">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<main class="max-w-4xl mx-auto px-6 pt-12 space-y-12">
+<!-- Hero Question Section -->
+<section class="text-center space-y-8">
+<h2 class="font-headline text-4xl md:text-5xl lg:text-6xl text-primary tracking-tight leading-tight">
+                How are you feeling today?
+            </h2>
+<div class="flex justify-center items-center gap-4 md:gap-8 py-6 overflow-x-auto no-scrollbar">
+<!-- Emoji Inputs -->
+<button class="flex flex-col items-center gap-3 group transition-all">
+<div class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-surface-container-low flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+<span class="material-symbols-outlined text-4xl md:text-5xl text-primary group-hover:text-white" data-icon="sentiment_very_dissatisfied">sentiment_very_dissatisfied</span>
+</div>
+<span class="text-xs font-medium uppercase tracking-widest text-on-surface-variant">Low</span>
+</button>
+<button class="flex flex-col items-center gap-3 group transition-all">
+<div class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-surface-container-low flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+<span class="material-symbols-outlined text-4xl md:text-5xl text-primary group-hover:text-white" data-icon="sentiment_dissatisfied">sentiment_dissatisfied</span>
+</div>
+</button>
+<button class="flex flex-col items-center gap-3 group transition-all">
+<div class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-surface-container-low flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+<span class="material-symbols-outlined text-4xl md:text-5xl text-primary group-hover:text-white" data-icon="sentiment_neutral">sentiment_neutral</span>
+</div>
+</button>
+<button class="flex flex-col items-center gap-3 group transition-all">
+<div class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-primary-container flex items-center justify-center ring-4 ring-primary-fixed">
+<span class="material-symbols-outlined text-4xl md:text-5xl text-primary-fixed" data-icon="sentiment_satisfied">sentiment_satisfied</span>
+</div>
+<span class="text-xs font-bold uppercase tracking-widest text-primary">Calm</span>
+</button>
+<button class="flex flex-col items-center gap-3 group transition-all">
+<div class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-surface-container-low flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+<span class="material-symbols-outlined text-4xl md:text-5xl text-primary group-hover:text-white" data-icon="sentiment_very_satisfied">sentiment_very_satisfied</span>
+</div>
+<span class="text-xs font-medium uppercase tracking-widest text-on-surface-variant">High</span>
+</button>
+</div>
+</section>
+<!-- Voice Note Section -->
+<section class="flex justify-center">
+<button class="flex items-center gap-3 px-8 py-4 bg-tertiary-fixed text-on-tertiary-fixed font-semibold rounded-full hover:shadow-lg transition-all scale-95 active:scale-90">
+<span class="material-symbols-outlined" data-icon="mic" style="font-variation-settings: 'FILL' 1;">mic</span>
+<span>Add a voice note</span>
+</button>
+</section>
+<!-- Graph Section -->
+<section class="parchment-texture rounded-[2rem] p-8 md:p-12 relative overflow-hidden shadow-sm">
+<!-- Lotus Petal Accents -->
+<div class="absolute -top-10 -right-10 opacity-10 pointer-events-none">
+<svg class="text-primary fill-current" height="200" viewbox="0 0 100 100" width="200">
+<path d="M50 0C50 0 85 40 85 65C85 84.3 69.3 100 50 100C30.7 100 15 84.3 15 65C15 40 50 0 50 0Z"></path>
+</svg>
+</div>
+<div class="absolute -bottom-10 -left-10 opacity-10 rotate-180 pointer-events-none">
+<svg class="text-primary fill-current" height="200" viewbox="0 0 100 100" width="200">
+<path d="M50 0C50 0 85 40 85 65C85 84.3 69.3 100 50 100C30.7 100 15 84.3 15 65C15 40 50 0 50 0Z"></path>
+</svg>
+</div>
+<div class="relative z-10 flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+<div>
+<h3 class="font-headline text-2xl text-primary">Weekly Mood Trend</h3>
+<p class="text-on-surface-variant text-sm">Your energy is stabilizing in the Pitta zone.</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-tertiary"></span>
+<span class="text-xs font-medium uppercase tracking-tighter text-on-surface-variant">Current: Harmonic</span>
+</div>
+</div>
+<!-- SVG Graph -->
+<div class="w-full h-48 md:h-64 relative">
+<svg class="w-full h-full preserve-3d" viewbox="0 0 400 150">
+<!-- Grid Lines -->
+<line opacity="0.3" stroke="#C1C8C2" stroke-dasharray="4 4" stroke-width="1" x1="0" x2="400" y1="120" y2="120"></line>
+<line opacity="0.3" stroke="#C1C8C2" stroke-dasharray="4 4" stroke-width="1" x1="0" x2="400" y1="80" y2="80"></line>
+<line opacity="0.3" stroke="#C1C8C2" stroke-dasharray="4 4" stroke-width="1" x1="0" x2="400" y1="40" y2="40"></line>
+<!-- Flowing Path -->
+<path class="lotus-path" d="M0,110 C40,110 60,40 100,40 C140,40 160,130 200,130 C240,130 260,70 300,70 C340,70 360,90 400,90" fill="none" stroke="url(#gradient-line)" stroke-linecap="round" stroke-width="4"></path>
+<!-- Area Fill -->
+<path d="M0,110 C40,110 60,40 100,40 C140,40 160,130 200,130 C240,130 260,70 300,70 C340,70 360,90 400,90 V150 H0 Z" fill="url(#gradient-fill)" opacity="0.2"></path>
+<defs>
+<lineargradient id="gradient-line" x1="0%" x2="100%" y1="0%" y2="0%">
+<stop offset="0%" stop-color="#735C00"></stop>
+<stop offset="100%" stop-color="#1B4332"></stop>
+</lineargradient>
+<lineargradient id="gradient-fill" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" stop-color="#C1ECD4"></stop>
+<stop offset="100%" stop-color="#FCFAEE" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<!-- Data Points -->
+<circle cx="100" cy="40" fill="#735C00" r="4"></circle>
+<circle cx="200" cy="130" fill="#735C00" r="4"></circle>
+<circle cx="300" cy="70" fill="#1B4332" r="4"></circle>
+</svg>
+<div class="flex justify-between mt-4 text-[10px] font-bold uppercase tracking-widest text-outline">
+<span>Mon</span>
+<span>Tue</span>
+<span>Wed</span>
+<span>Thu</span>
+<span>Fri</span>
+<span>Sat</span>
+<span>Sun</span>
+</div>
+</div>
+</section>
+<!-- Insights Bento Card -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-12">
+<div class="bg-surface-container-low p-6 rounded-2xl flex items-start gap-4">
+<div class="bg-primary-container text-white p-3 rounded-xl">
+<span class="material-symbols-outlined" data-icon="eco">eco</span>
+</div>
+<div>
+<h4 class="font-headline text-lg text-primary">Ayurvedic Insight</h4>
+<p class="text-sm text-on-surface-variant mt-1 leading-relaxed">Your midweek dip suggests an increase in Vata. Try grounding foods like roasted root vegetables tonight.</p>
+</div>
+</div>
+<div class="bg-surface-container-low p-6 rounded-2xl flex items-start gap-4">
+<div class="bg-tertiary text-white p-3 rounded-xl">
+<span class="material-symbols-outlined" data-icon="bedtime" style="font-variation-settings: 'FILL' 1;">bedtime</span>
+</div>
+<div>
+<h4 class="font-headline text-lg text-primary">Sleep Synergy</h4>
+<p class="text-sm text-on-surface-variant mt-1 leading-relaxed">Mood peaks correlate with 8+ hours of rest. Aim for a 10 PM wind-down today.</p>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-2 bg-[#FCFAEE]/80 dark:bg-[#1B1C15]/80 backdrop-blur-md z-50 rounded-t-[24px] shadow-[0_-4px_24px_0_rgba(27,28,21,0.06)] glass-nav">
+<!-- Home -->
+<a class="flex flex-col items-center justify-center text-[#414844] dark:text-[#C1C8C2] px-5 py-2 hover:bg-[#F6F4E8] dark:hover:bg-[#2A2D2A] rounded-[24px] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider mt-1">Home</span>
+</a>
+<!-- Scanner -->
+<a class="flex flex-col items-center justify-center text-[#414844] dark:text-[#C1C8C2] px-5 py-2 hover:bg-[#F6F4E8] dark:hover:bg-[#2A2D2A] rounded-[24px] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="document_scanner">document_scanner</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider mt-1">Scanner</span>
+</a>
+<!-- Timeline -->
+<a class="flex flex-col items-center justify-center text-[#414844] dark:text-[#C1C8C2] px-5 py-2 hover:bg-[#F6F4E8] dark:hover:bg-[#2A2D2A] rounded-[24px] transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="timeline">timeline</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider mt-1">Timeline</span>
+</a>
+<!-- Mood (ACTIVE) -->
+<a class="flex flex-col items-center justify-center bg-[#C1ECD4] dark:bg-[#1B4332] text-[#002114] dark:text-[#C1ECD4] rounded-[24px] px-5 py-2 transition-all active:scale-90 duration-200 ease-out" href="#">
+<span class="material-symbols-outlined" data-icon="wb_sunny" style="font-variation-settings: 'FILL' 1;">wb_sunny</span>
+<span class="font-['Inter'] font-medium text-[10px] uppercase tracking-wider mt-1">Mood</span>
+</a>
+</nav>
+</body></html>
