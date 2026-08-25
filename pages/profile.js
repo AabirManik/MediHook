@@ -1,3 +1,4 @@
+import { auth } from '../auth.js';
 export function renderProfile(navigate) {
   const t = window.__t || ((key) => key);
   const isLoggedIn = window.__isLoggedIn || false;
@@ -311,11 +312,19 @@ function renderAuthScreen(t) {
             </div>
           </div>
 
+          <div style="margin-bottom:var(--space-6);">
+            <label style="display:block; color:white; font-size:0.875rem; font-weight:600; margin-bottom:var(--space-2);">Email Address</label>
+            <div class="login-select-wrapper">
+              <span class="material-symbols-outlined login-select-icon">mail</span>
+              <input type="email" id="email-input" class="login-input" placeholder="Enter your email" required />
+            </div>
+          </div>
+
           <div style="margin-bottom:var(--space-8);">
-            <label style="display:block; color:white; font-size:0.875rem; font-weight:600; margin-bottom:var(--space-2);">Access Passkey</label>
+            <label style="display:block; color:white; font-size:0.875rem; font-weight:600; margin-bottom:var(--space-2);">Password</label>
             <div class="login-select-wrapper">
               <span class="material-symbols-outlined login-select-icon">lock</span>
-              <input type="password" id="passkey-input" class="login-input" placeholder="Enter passkey" value="demo123" />
+              <input type="password" id="password-input" class="login-input" placeholder="Enter password" required />
             </div>
           </div>
 
@@ -331,7 +340,10 @@ function renderAuthScreen(t) {
           <div style="flex:1; height:1px; background:rgba(255,255,255,0.2);"></div>
         </div>
 
-        <div id="google-signin-btn" style="display:flex; justify-content:center; margin-bottom:var(--space-6);"></div>
+        <button type="button" id="supabase-google-btn" class="btn-secondary" style="width:100%; justify-content:center; padding:14px; font-size:1rem; border-radius:var(--radius-xl); margin-bottom:var(--space-6);">
+          <img src="https://developers.google.com/identity/images/g-logo.png" style="width:20px; height:20px; margin-right:8px;" />
+          Continue with Google
+        </button>
         
         <div style="text-align:center; margin-top:var(--space-6);">
           <a href="#" id="auth-mode-btn" data-mode="login" style="color:white; font-size:0.875rem; text-decoration:none;">
@@ -454,13 +466,12 @@ export function initProfile(navigate) {
   });
 
   // ── Logout ──
-  document.getElementById('profile-logout-btn')?.addEventListener('click', () => {
-    window.__isLoggedIn = false;
-    window.__currentUserRole = 'patient';
-    window.__currentContacts = [];
-    localStorage.removeItem('sanjeev_token');
-    localStorage.removeItem('userId');
-    window.showToast('Logged out safely');
-    navigate('profile');
+  document.getElementById('profile-logout-btn')?.addEventListener('click', async () => {
+    try {
+      await auth.signOut();
+      window.showToast('Logged out safely');
+    } catch (e) {
+      window.showToast('Logout error', true);
+    }
   });
 }

@@ -19,6 +19,7 @@ import { renderLogin } from './pages/login.js';
 import { renderProfile, initProfile } from './pages/profile.js';
 import { renderLanding } from './pages/landing.js';
 import { api } from './api.js';
+import { auth } from './auth.js';
 
 // Expose t() globally so pages can use it
 window.__t = t;
@@ -358,51 +359,23 @@ function bindPageEvents(page) {
     }
   });
 
-  // Profile (Existing logic)
+  // Profile (Existing logic with Supabase Auth)
   if (page === 'profile') {
-    // Google Login Initialization
-    if (window.google && window.google.accounts) {
-      setTimeout(() => {
-        const btnContainer = main.querySelector("#google-signin-btn");
-        if (btnContainer) {
-          window.google.accounts.id.initialize({
-            client_id: "597980671013-7jlpi4v0cvgdsdeso10mb2av0gbid17h.apps.googleusercontent.com",
-            callback: async (response) => {
-              try {
-                const role = main.querySelector('#role-select')?.value || 'patient';
-                const submitBtnText = main.querySelector('#auth-submit span.btn-text');
-                if(submitBtnText) submitBtnText.textContent = 'Authenticating via Google...';
-                
-                const authData = await api.googleLogin(response.credential, role);
-                
-                window.__isLoggedIn = true;
-                window.__currentUserRole = authData.user.role;
-                window.__currentUserName = authData.user.name;
-                window.__currentUserId = authData.user.id;
-                window.__currentHealthId = authData.user.healthId;
-                localStorage.setItem('sanjeev_token', authData.token);
-                localStorage.setItem('userId', authData.user.id);
-                
-                window.showToast("Login Successful!");
-                navigate(authData.user.role === 'caregiver' ? 'caregiver' : 'home');
-              } catch (err) {
-                window.showToast('Google Auth Error: ' + err.message, true);
-                const submitBtnText = main.querySelector('#auth-submit span.btn-text');
-                if(submitBtnText) submitBtnText.textContent = 'Enter Hub';
-              }
-            },
-            ux_mode: 'popup',
-            use_fedcm_for_prompt: false
-          });
-          window.google.accounts.id.renderButton(
-            btnContainer,
-            { theme: "outline", size: "large", shape: "pill", width: 300 }
-          );
+    // Supabase Google Auth
+    const googleBtn = main.querySelector("#supabase-google-btn");
+    if (googleBtn) {
+      googleBtn.addEventListener('click', async () => {
+        try {
+          googleBtn.textContent = 'Authenticating...';
+          await auth.signInWithGoogle();
+        } catch (err) {
+          window.showToast('Google Auth Error: ' + err.message, true);
+          googleBtn.innerHTML = '<img src="https://developers.google.com/identity/images/g-logo.png" style="width:20px; height:20px; margin-right:8px;" /> Continue with Google';
         }
-      }, 100);
+      });
     }
 
-    // Auth Form
+    // Email/Password Auth Form
     const authForm = main.querySelector('#profile-auth-form');
     if (authForm) {
       authForm.addEventListener('submit', async (e) => {
@@ -412,30 +385,23 @@ function bindPageEvents(page) {
         const mode = toggleBtn ? toggleBtn.dataset.mode : 'login';
         
         const role = main.querySelector('#role-select').value;
-        const passkey = main.querySelector('#passkey-input').value.trim();
+        const email = main.querySelector('#email-input').value.trim();
+        const password = main.querySelector('#password-input').value.trim();
         const submitBtnText = main.querySelector('#auth-submit span.btn-text');
         
         try {
           submitBtnText.textContent = 'Authenticating...';
-          let authData;
           
           if (mode === 'signup') {
              const nameVal = main.querySelector('#name-input').value.trim();
-             authData = await api.register(nameVal, role, passkey);
+             await auth.signUp(email, password, nameVal, role);
+             window.showToast("Account created successfully!");
           } else {
-             authData = await api.login(role, passkey);
+             await auth.signIn(email, password);
+             window.showToast("Login Successful!");
           }
           
-          window.__isLoggedIn = true;
-          window.__currentUserRole = authData.user.role;
-          window.__currentUserName = authData.user.name;
-          window.__currentUserId = authData.user.id;
-          window.__currentHealthId = authData.user.healthId;
-          localStorage.setItem('sanjeev_token', authData.token);
-          localStorage.setItem('userId', authData.user.id);
-          
-          navigate(authData.user.role === 'caregiver' ? 'caregiver' : 'home');
-
+          // The actual redirection and session handling will be managed globally by onAuthStateChange
         } catch (err) {
           alert('Auth Error: ' + err.message);
           submitBtnText.textContent = mode === 'signup' ? 'Sign Up' : 'Enter Hub';
@@ -521,15 +487,43 @@ if (profileBtn) {
   profileBtn.addEventListener('click', () => navigate('profile'));
 }
 
-// ---- Initial Load ----
-// Restore saved profile name if user set one previously
+// ---- Initial Load & Supabase Auth Sync ----
+// Restore saved profile name if user set one previously (legacy support)
 const savedProfileName = localStorage.getItem('profile_name');
 if (savedProfileName && !window.__currentUserName) {
   window.__currentUserName = savedProfileName;
 }
 
-if (window.__isLoggedIn || localStorage.getItem('userId')) {
-  navigate('home');
-} else {
+auth.onAuthStateChange(async (event, session) => {
+  if (session?.user) {
+    window.__isLoggedIn = true;
+    window.__currentUserId = session.user.id;
+    
+    // Fetch profile
+    const profile = await auth.getCurrentProfile(session.user.id);
+    if (profile) {
+      window.__currentUserRole = profile.role || 'patient';
+      window.__currentUserName = profile.full_name || 'User';
+      window.__currentHealthId = profile.health_id || 'SANJ-XXXX';
+    }
+    
+    if (currentPage === 'landing' || (currentPage === 'profile' && event === 'SIGNED_IN')) {
+      navigate(window.__currentUserRole === 'caregiver' ? 'caregiver' : 'home');
+    }
+  } else {
+    window.__isLoggedIn = false;
+    window.__currentUserId = null;
+    
+    if (currentPage !== 'landing') {
+      navigate('landing');
+    }
+  }
+});
+
+auth.getSession().then(session => {
+  if (!session) {
+    navigate('landing');
+  }
+}).catch(() => {
   navigate('landing');
-}
+});

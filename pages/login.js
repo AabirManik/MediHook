@@ -14,30 +14,59 @@ export function renderLogin(navigate) {
       </div>
 
       <form id="login-form">
-        <div style="margin-bottom:var(--space-6);">
-          <label style="display:block; color:white; font-size:0.875rem; font-weight:600; margin-bottom:var(--space-2);">Select Your Role</label>
-          <div class="login-select-wrapper">
-            <span class="material-symbols-outlined login-select-icon">person</span>
-            <select id="role-select" class="login-input">
-              <option value="patient">Patient</option>
-              <option value="caregiver">Caregiver</option>
-              <option value="pharmacist">Pharmacist</option>
-            </select>
+        <div id="signup-fields" style="display:none;">
+          <div style="margin-bottom:var(--space-4);">
+            <label style="display:block; color:white; font-size:0.875rem; font-weight:600; margin-bottom:var(--space-2);">Full Name</label>
+            <div class="login-select-wrapper">
+              <span class="material-symbols-outlined login-select-icon">person</span>
+              <input type="text" id="name-input" class="login-input" placeholder="Enter your full name" />
+            </div>
+          </div>
+          <div style="margin-bottom:var(--space-4);">
+            <label style="display:block; color:white; font-size:0.875rem; font-weight:600; margin-bottom:var(--space-2);">Select Your Role</label>
+            <div class="login-select-wrapper">
+              <span class="material-symbols-outlined login-select-icon">badge</span>
+              <select id="role-select" class="login-input">
+                <option value="patient">Patient</option>
+                <option value="caregiver">Caregiver</option>
+                <option value="pharmacist">Pharmacist</option>
+              </select>
+            </div>
           </div>
         </div>
 
-        <div style="margin-bottom:var(--space-8);">
-          <label style="display:block; color:white; font-size:0.875rem; font-weight:600; margin-bottom:var(--space-2);">Access Passkey</label>
+        <div style="margin-bottom:var(--space-4);">
+          <label style="display:block; color:white; font-size:0.875rem; font-weight:600; margin-bottom:var(--space-2);">Email Address</label>
+          <div class="login-select-wrapper">
+            <span class="material-symbols-outlined login-select-icon">mail</span>
+            <input type="email" id="email-input" class="login-input" placeholder="Enter your email" required />
+          </div>
+        </div>
+
+        <div style="margin-bottom:var(--space-6);">
+          <label style="display:block; color:white; font-size:0.875rem; font-weight:600; margin-bottom:var(--space-2);">Password</label>
           <div class="login-select-wrapper">
             <span class="material-symbols-outlined login-select-icon">lock</span>
-            <input type="password" id="passkey-input" class="login-input" placeholder="Enter passkey" value="demo123" />
+            <input type="password" id="password-input" class="login-input" placeholder="Enter password" required />
           </div>
         </div>
 
-        <button type="submit" class="btn-primary" style="width:100%; justify-content:center; padding:18px; font-size:1.125rem; background:white; color:var(--primary); font-weight:700; border-radius:var(--radius-xl);">
-          Enter Hub
+        <button type="submit" id="submit-btn" class="btn-primary" style="width:100%; justify-content:center; padding:18px; font-size:1.125rem; background:white; color:var(--primary); font-weight:700; border-radius:var(--radius-xl); margin-bottom:var(--space-4);">
+          Sign In
           <span class="material-symbols-outlined">arrow_forward</span>
         </button>
+        
+        <button type="button" id="google-login-btn" class="btn-secondary" style="width:100%; justify-content:center; padding:14px; font-size:1rem; border-radius:var(--radius-xl); margin-bottom:var(--space-4);">
+          <img src="https://developers.google.com/identity/images/g-logo.png" style="width:20px; height:20px; margin-right:8px;" />
+          Continue with Google
+        </button>
+
+        <div style="text-align:center;">
+          <p style="color:white; font-size:0.875rem;">
+            <span id="toggle-text">Don't have an account?</span> 
+            <a href="#" id="toggle-auth-mode" style="color:var(--primary-fixed); font-weight:bold; text-decoration:underline;">Sign Up</a>
+          </p>
+        </div>
       </form>
       
       <div style="text-align:center; margin-top:var(--space-6);">
