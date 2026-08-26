@@ -1,4 +1,14 @@
 // Caregiver Dashboard — Dynamic, Production-Ready
+let _caregiverAbort = null;
+
+export function cleanupCaregiver() {
+  if (_caregiverAbort) { _caregiverAbort.abort(); _caregiverAbort = null; }
+  if (window.__sosSubscription) {
+    try { window.__sosSubscription.unsubscribe(); } catch(e) {}
+    window.__sosSubscription = null;
+  }
+}
+
 export function renderCaregiver(navigate) {
   const t = window.__t;
   const userName = window.__currentUserName || 'Caregiver';
@@ -58,6 +68,10 @@ export function renderCaregiver(navigate) {
 }
 
 export async function initCaregiver() {
+  if (_caregiverAbort) _caregiverAbort.abort();
+  _caregiverAbort = new AbortController();
+  const signal = _caregiverAbort.signal;
+
   const alertContainer = document.getElementById('caregiver-alert-container');
   const complianceChart = document.getElementById('compliance-chart');
   const contactsContainer = document.getElementById('caregiver-contacts');
@@ -80,7 +94,7 @@ export async function initCaregiver() {
          window.__pendingInviteToken = null;
          inviteOverlay.style.display = 'none';
          window.showToast("Invitation declined.");
-      });
+      }, { signal });
       
       document.getElementById('accept-invite-btn')?.addEventListener('click', async (e) => {
          e.target.textContent = 'Accepting...';
@@ -96,7 +110,7 @@ export async function initCaregiver() {
            window.showToast("Failed to accept: " + err.message, true);
            e.target.textContent = 'Accept Invite';
          }
-      });
+      }, { signal });
     }
   }
 
@@ -203,17 +217,23 @@ async function loadCaregiverDashboardData(api, userId, alertContainer, complianc
         </div>
       `;
       
-      document.querySelector('.ack-sos-btn')?.addEventListener('click', async (e) => {
-        try {
-          e.target.textContent = 'Acknowledging...';
-          await api.acknowledgeSOS(e.target.dataset.id);
-          window.showToast("SOS Acknowledged!");
-          loadCaregiverDashboardData(api, userId, alertContainer, complianceChart, contactsContainer);
-        } catch (err) {
-          window.showToast("Error acknowledging: " + err.message, true);
-          e.target.textContent = 'ACKNOWLEDGE ALERT';
-        }
-      });
+      // Use event delegation to avoid stacking handlers on repeated renders
+      if (!alertContainer._ackHandlerAttached) {
+        alertContainer.addEventListener('click', async (e) => {
+          const ackBtn = e.target.closest('.ack-sos-btn');
+          if (!ackBtn) return;
+          try {
+            ackBtn.textContent = 'Acknowledging...';
+            await api.acknowledgeSOS(ackBtn.dataset.id);
+            window.showToast("SOS Acknowledged!");
+            loadCaregiverDashboardData(api, userId, alertContainer, complianceChart, contactsContainer);
+          } catch (err) {
+            window.showToast("Error acknowledging: " + err.message, true);
+            ackBtn.textContent = 'ACKNOWLEDGE ALERT';
+          }
+        });
+        alertContainer._ackHandlerAttached = true;
+      }
     } else {
       // Normal clear state
       const patientNames = connectedPatients.map(p => p.profiles?.full_name).join(', ');

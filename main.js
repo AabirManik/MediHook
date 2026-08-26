@@ -6,18 +6,18 @@ import { t, setLanguage, getLanguage } from './translate.js';
 import { renderHome, initHome } from './pages/home.js';
 import { renderScanner } from './pages/scanner.js';
 import { renderTimeline, initTimeline } from './pages/timeline.js';
-import { renderMood } from './pages/mood.js';
+import { renderMood, initMood, cleanupMood } from './pages/mood.js';
 import { renderRiskAnalysis, initRiskAnalysis } from './pages/risk-analysis.js';
 import { renderAlert } from './pages/alert.js';
-import { renderCaregiver, initCaregiver } from './pages/caregiver.js';
-import { renderSymptoms, initSymptoms } from './pages/symptoms.js';
+import { renderCaregiver, initCaregiver, cleanupCaregiver } from './pages/caregiver.js';
+import { renderSymptoms, initSymptoms, cleanupSymptoms } from './pages/symptoms.js';
 import { renderMedications, initMedications } from './pages/medications.js';
 import { renderReport } from './pages/report.js';
-import { renderClearScript } from './pages/clearscript.js';
-import { renderDrugInteraction, initDrugInteraction } from './pages/drug-interaction.js';
+import { renderClearScript, cleanupClearScript } from './pages/clearscript.js';
+import { renderDrugInteraction, initDrugInteraction, cleanupDrugInteraction } from './pages/drug-interaction.js';
 import { renderLogin } from './pages/login.js';
 import { renderProfile, initProfile } from './pages/profile.js';
-import { renderLanding } from './pages/landing.js';
+import { renderLanding, cleanupLanding } from './pages/landing.js';
 import { api } from './api.js';
 import { auth } from './auth.js';
 
@@ -49,13 +49,31 @@ window.__currentUserRole = 'patient';
 let currentPage = 'home';
 window.navigate = navigate;
 
-function navigate(page) {
+let currentCleanup = null;
+let isNavigating = false;
+
+function navigate(page, skipPushState) {
+  if (isNavigating) return;
+  isNavigating = true;
+
+  // Cleanup previous page
+  if (currentCleanup) {
+    try { currentCleanup(); } catch(e) { console.warn('Cleanup error:', e); }
+    currentCleanup = null;
+  }
+
   // Stop camera if navigating away
   if (window.stopLiveCamera) {
     window.stopLiveCamera();
   }
 
   currentPage = page;
+
+  // Push to browser history unless this is a popstate-triggered navigation
+  if (!skipPushState) {
+    history.pushState({ page }, '', `#${page}`);
+  }
+
   const main = document.getElementById('main-content');
   const renderer = pages[page];
   if (renderer) {
@@ -67,20 +85,26 @@ function navigate(page) {
       main.appendChild(content);
     }
     main.querySelector('.page-enter') || main.firstElementChild?.classList.add('page-enter');
-    
-    // Auto-fetch data for profile if logged in
+
+    // Fetch contacts for profile (single render, no double-render)
     if (page === 'profile' && window.__isLoggedIn) {
       api.getContacts(window.__currentUserId).then(contacts => {
         window.__currentContacts = contacts;
-        const renderer = pages['profile'];
-        main.innerHTML = renderer(navigate);
-        bindPageEvents('profile');
+        const contactsList = main.querySelector('#contacts-list');
+        if (contactsList) {
+          contactsList.innerHTML = contacts.map(c => `
+            <div class="contact-card">
+              <div><strong>${c.name}</strong> <span class="label-caps">${c.relation || ''}</span></div>
+              <div>${c.phone} ${c.is_sos ? '<span class="chip" style="background:var(--error-container);color:var(--error);font-size:0.7rem;">SOS</span>' : ''}</div>
+            </div>
+          `).join('') || '<p style="color:var(--on-surface-variant);font-size:0.875rem;">No contacts added yet.</p>';
+        }
       });
     }
 
     bindPageEvents(page);
   }
-  
+
   // Hide top & bottom nav for auth and landing views
   const topbar = document.getElementById('topbar');
   const bottomNav = document.getElementById('bottom-nav');
@@ -111,6 +135,18 @@ function navigate(page) {
   updateBottomNavHTML(page);
   updateStaticText();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Register cleanup function for the new page
+  const cleanupMap = {
+    landing: cleanupLanding,
+    caregiver: cleanupCaregiver,
+    symptoms: cleanupSymptoms,
+    mood: cleanupMood,
+    'drug-interaction': cleanupDrugInteraction,
+    clearscript: cleanupClearScript,
+  };
+  currentCleanup = cleanupMap[page] || null;
+  isNavigating = false;
 }
 
 function updateBottomNavHTML(page) {
@@ -194,35 +230,6 @@ function bindPageEvents(page) {
     sessionStorage.removeItem('scanText');
     // Stop any leftover camera stream from a previous visit
     window.stopLiveCamera && window.stopLiveCamera();
-    // The capture button is handled by window.captureLiveCamera() defined below
-  }
-
-  // ClearScript
-  if (page === 'clearscript') {
-    main.querySelector('#clearscript-confirm')?.addEventListener('click', async () => {
-      const lastScanStr = sessionStorage.getItem('lastScan');
-      if (lastScanStr) {
-        try {
-          const data = JSON.parse(lastScanStr);
-          const userId = window.__currentUserId || localStorage.getItem('userId');
-          if (userId && userId !== '1' && userId !== 'undefined') {
-            window.showToast("Saving to health history...");
-            await api.addPrescription(userId, {
-              medication: data.medication || 'Unknown',
-              dosage: data.dosage || '',
-              instructions: data.instructions || '',
-              doctorName: data.doctorName || 'Unknown',
-              date: new Date().toISOString().split('T')[0]
-            });
-            window.showToast("Saved successfully!");
-          }
-        } catch(e) {
-          console.error("Error saving prescription", e);
-          window.showToast("Save failed: " + e.message, true);
-        }
-      }
-      navigate('risk-analysis');
-    });
   }
 
   // Risk Analysis
@@ -247,41 +254,7 @@ function bindPageEvents(page) {
 
   // Mood
   if (page === 'mood') {
-    let currentMoodLevel = 3; // Default 3 (Calm)
-    
-    const emojiBtns = main.querySelectorAll('.mood-emoji-btn');
-    emojiBtns.forEach((btn, idx) => {
-      btn.addEventListener('click', () => {
-        emojiBtns.forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        currentMoodLevel = idx + 1; // 1 to 5 scale
-      });
-    });
-
-    const saveBtn = main.querySelector('#save-mood-btn');
-    saveBtn?.addEventListener('click', async () => {
-      const notes = main.querySelector('#mood-notes')?.value || "";
-      const feedback = main.querySelector('#mood-feedback');
-      
-      try {
-        saveBtn.textContent = 'Saving...';
-        await api.addMood(window.__currentUserId || 1, {
-          moodLevel: currentMoodLevel,
-          notes: notes,
-          date: new Date().toISOString()
-        });
-        
-        saveBtn.textContent = 'Save Daily Mood';
-        if (feedback) feedback.textContent = "Mood saved successfully!";
-        setTimeout(() => { if (feedback) feedback.textContent = ""; }, 3000);
-      } catch (err) {
-        if (feedback) {
-          feedback.style.color = 'red';
-          feedback.textContent = "Error: " + err.message;
-        }
-        saveBtn.textContent = 'Save Daily Mood';
-      }
-    });
+    initMood();
   }
 
   // Drug Interaction
@@ -536,7 +509,13 @@ auth.onAuthStateChange(async (event, session) => {
       window.__pendingInviteToken = inviteToken;
       navigate('caregiver');
     } else if (isInitialLoad || currentPage === 'landing' || (currentPage === 'profile' && event === 'SIGNED_IN')) {
-      navigate(window.__currentUserRole === 'caregiver' ? 'caregiver' : 'home');
+      const returnTo = sessionStorage.getItem('returnTo');
+      if (returnTo && pages[returnTo]) {
+        sessionStorage.removeItem('returnTo');
+        navigate(returnTo);
+      } else {
+        navigate(window.__currentUserRole === 'caregiver' ? 'caregiver' : 'home');
+      }
     }
   } else {
     window.__isLoggedIn = false;
@@ -558,14 +537,46 @@ auth.onAuthStateChange(async (event, session) => {
 function handleRouting() {
   const hash = window.location.hash.slice(1) || 'home';
   if (pages[hash] && window.__isLoggedIn) {
-    navigate(hash);
+    navigate(hash, true);
   } else if (!window.__isLoggedIn && hash !== 'landing') {
-    navigate('landing');
+    // Save intended destination for returnTo after login
+    if (hash !== 'home' && pages[hash]) {
+      sessionStorage.setItem('returnTo', hash);
+    }
+    navigate('landing', true);
   } else if (!window.__isLoggedIn && hash === 'landing') {
-    navigate('landing');
+    navigate('landing', true);
   }
 }
 window.addEventListener('hashchange', handleRouting);
+
+// Handle browser back/forward buttons
+window.addEventListener('popstate', (e) => {
+  const page = e.state?.page || window.location.hash.slice(1) || 'home';
+  if (pages[page] && window.__isLoggedIn) {
+    navigate(page, true);
+  } else if (!window.__isLoggedIn) {
+    navigate('landing', true);
+  }
+});
+
+// Handle initial page load with hash (deep linking)
+if (window.location.hash) {
+  const initialPage = window.location.hash.slice(1);
+  if (pages[initialPage]) {
+    // Wait for auth state to resolve, then route
+    const _unsub = auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        window.__isLoggedIn = true;
+        window.__currentUserId = session.user.id;
+        navigate(initialPage, true);
+      } else {
+        navigate('landing', true);
+      }
+      if (_unsub) _unsub();
+    });
+  }
+}
 
 // ---- Scanner Live Camera Functions ----
 window.startLiveCamera = async function() {
@@ -604,13 +615,18 @@ window.captureLiveCamera = async function() {
   }
   
   // Step 2: Camera is live — capture the frame
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
+  // Resize to max 1280px width for faster upload
+  const maxDim = 1280;
+  let w = video.videoWidth;
+  let h = video.videoHeight;
+  if (w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; }
+  canvas.width = w;
+  canvas.height = h;
   const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(video, 0, 0, w, h);
   
-  // Get base64 (jpeg)
-  const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+  // Compress: JPEG quality 0.7 (down from 0.9) — cuts payload ~50%
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
   const base64Data = dataUrl.split(',')[1];
   
   window.showToast('Prescription Captured! Analyzing...');
@@ -620,7 +636,8 @@ window.captureLiveCamera = async function() {
   // Stop the camera before navigating
   window.stopLiveCamera();
   
-  setTimeout(() => window.navigate('clearscript'), 800);
+  // Navigate immediately — no artificial delay
+  window.navigate('clearscript');
 };
 
 window.stopLiveCamera = function() {

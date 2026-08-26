@@ -111,12 +111,12 @@ export const api = {
     }
   },
 
-  checkInteractions: async (medications) => {
+  checkInteractions: async (medications, context = {}) => {
     try {
       const resp = await fetch(`${BASE_URL}/check-interactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ medications })
+        body: JSON.stringify({ medications, ...context })
       });
       const data = await resp.json();
       if (!resp.ok) throw new Error(data.error || 'Server Error');

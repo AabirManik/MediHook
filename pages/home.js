@@ -147,7 +147,7 @@ export async function initHome() {
     if (meds.length > 0) {
       const medNames = meds.map(m => m.medication);
       const interaction = await api.checkInteractions(medNames);
-      if (interaction.hasInteraction) score = 65; // High risk
+      if (interaction.pairs && interaction.pairs.length > 0) score = 65; // High risk
       else if (meds.length > 3) score = 90; // Polypharmacy caution
       else score = 98;
     }

@@ -130,6 +130,8 @@ const translations = {
     sleepSynergy: 'Sleep Synergy',
     sleepDesc: 'Mood peaks correlate with 8+ hours of rest. Aim for a 10 PM wind-down today.',
     days: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    noMoodData: 'No mood data yet',
+    noMoodDesc: 'Log your first mood above to see your trend',
 
     // Risk Analysis
     riskTitle: 'Analysis Results',
@@ -346,6 +348,8 @@ const translations = {
     sleepSynergy: 'नींद की तालमेल',
     sleepDesc: 'मूड 8+ घंटे के आराम के साथ सबसे अच्छा रहता है। आज रात 10 बजे तक सोने का लक्ष्य रखें।',
     days: ['सोम', 'मंगल', 'बुध', 'गुरु', 'शुक्र', 'शनि', 'रवि'],
+    noMoodData: 'अभी तक कोई मूड डेटा नहीं',
+    noMoodDesc: 'अपना रुझान देखने के लिए ऊपर अपना पहला मूड लॉग करें',
 
     riskTitle: 'विश्लेषण परिणाम',
     riskSub: 'हमने आपके स्वास्थ्य प्रोफाइल और मौजूदा शासन (रेजिमेन) के विरुद्ध आपकी स्कैन की गई दवाओं का विश्लेषण किया है।',
@@ -559,6 +563,8 @@ const translations = {
     sleepSynergy: 'ঘুমের সমন্বয়',
     sleepDesc: '৮ ঘণ্টার বেশি বিশ্রামের সাথে মেজাজ সর্বোত্তম থাকে। রাত ১০ টার মধ্যে ঘুমানোর লক্ষ্য রাখুন।',
     days: ['সোম', 'মঙ্গল', 'বুধ', 'বৃহঃ', 'শুক্র', 'শনি', 'রবি'],
+    noMoodData: 'এখনো কোনো মূড ডেটা নেই',
+    noMoodDesc: 'আপনার প্রবণতা দেখতে উপরে আপনার প্রথম মূড লগ করুন',
 
     riskTitle: 'বিশ্লেষণ ফলাফল',
     riskSub: 'আমরা আপনার স্বাস্থ্য প্রোফাইল এবং বিদ্যমান ওষুধের পদ্ধতির বিপরীতে আপনার স্ক্যান করা ওষুধগুলি বিশ্লেষণ করেছি।',

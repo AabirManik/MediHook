@@ -115,12 +115,14 @@ export async function initRiskAnalysis() {
     const result = await api.checkInteractions(allMeds);
 
     loading.style.display = 'none';
-    if (result.hasInteraction) {
+    const hasInteractions = result.pairs && result.pairs.length > 0;
+    if (hasInteractions) {
       dangerArea.style.display = 'grid';
-      riskMsg.innerText = result.message || "Potential risks detected in your current combination.";
-      riskTitle.innerText = `Potential Interaction: ${medication || 'New Drug'} + Existing Meds`;
-      riskDesc.innerText = result.message || "These medications may interact. Consult your doctor.";
-      if (result.cascade) cascadeContainer.style.display = 'flex';
+      const topPair = result.pairs[0];
+      riskMsg.innerText = result.summary || "Potential risks detected in your current combination.";
+      riskTitle.innerText = `Potential Interaction: ${topPair.drugA} + ${topPair.drugB}`;
+      riskDesc.innerText = topPair.message || "These medications may interact. Consult your doctor.";
+      if (result.pairs.some(p => p.cascade)) cascadeContainer.style.display = 'flex';
     } else {
       safeArea.style.display = 'block';
     }

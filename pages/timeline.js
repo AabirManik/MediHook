@@ -109,13 +109,13 @@ export async function initTimeline() {
     // Map moods
     moods.forEach(m => {
       let icon = 'sentiment_satisfied';
-      if (m.moodLevel > 7) icon = 'sentiment_very_satisfied';
-      if (m.moodLevel < 4) icon = 'sentiment_dissatisfied';
+      if (m.moodlevel >= 4) icon = 'sentiment_very_satisfied';
+      if (m.moodlevel <= 2) icon = 'sentiment_dissatisfied';
 
       events.push({
         type: 'mood',
         date: new Date(m.date || m.createdAt || Date.now()),
-        title: `Mood Check-in: ${m.moodLevel}/10`,
+        title: `Mood Check-in: ${m.moodlevel}/5`,
         desc: m.notes || 'No notes provided.',
         icon: icon,
         color: 'var(--tertiary)'
@@ -169,14 +169,14 @@ export async function initTimeline() {
       if (aiTitle && aiDesc) {
         if (latestMood && latestMed) {
           aiTitle.innerText = `Mood changes correlate with ${latestMed.medication}`;
-          aiDesc.innerText = `Observation: Since starting ${latestMed.medication}, your recent mood check-in was ${latestMood.moodLevel}/10.`;
+          aiDesc.innerText = `Observation: Since starting ${latestMed.medication}, your recent mood check-in was ${latestMood.moodlevel}/5.`;
           if (aiBtn) aiBtn.style.display = 'block';
         } else if (latestMed) {
           aiTitle.innerText = `Monitoring ${latestMed.medication}`;
           aiDesc.innerText = `Log your mood regularly to see how ${latestMed.medication} affects your well-being.`;
         } else if (latestMood) {
           aiTitle.innerText = `Mood Analysis`;
-          aiDesc.innerText = `Your recent mood level is ${latestMood.moodLevel}/10. Keep logging to establish a baseline.`;
+          aiDesc.innerText = `Your recent mood level is ${latestMood.moodlevel}/5. Keep logging to establish a baseline.`;
         }
       }
 
@@ -186,7 +186,7 @@ export async function initTimeline() {
       let recoveryLevel = 50;
 
       if (latestMood) {
-        energyLevel = latestMood.moodLevel * 10;
+        energyLevel = latestMood.moodlevel * 20;
         stressLevel = 100 - energyLevel;
         recoveryLevel = (energyLevel + 50) / 2;
       }

@@ -55,9 +55,21 @@ export function renderScanner(navigate) {
           const reader = new FileReader();
           reader.onload = (e) => {
             window.showToast('Image uploaded! Analyzing with AI...');
-            sessionStorage.setItem('scanImage', e.target.result.split(',')[1]);
-            sessionStorage.removeItem('scanText');
-            setTimeout(() => window.navigate('clearscript'), 800);
+            // Resize image for faster processing
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const maxDim = 1280;
+              let w = img.width, h = img.height;
+              if (w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; }
+              canvas.width = w; canvas.height = h;
+              canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+              const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+              sessionStorage.setItem('scanImage', dataUrl.split(',')[1]);
+              sessionStorage.removeItem('scanText');
+              window.navigate('clearscript');
+            };
+            img.src = e.target.result;
           };
           reader.readAsDataURL(this.files[0]);
         }

@@ -275,7 +275,7 @@ function renderAuthScreen(t) {
   return `
     <div class="login-page">
       <div class="login-glass-card">
-        <button class="icon-btn" style="position:absolute; top:var(--space-4); right:var(--space-4); color:white;" onclick="window.history.back()">
+        <button class="icon-btn" style="position:absolute; top:var(--space-4); right:var(--space-4); color:white;" onclick="window.location.hash='#landing'">
           <span class="material-symbols-outlined">close</span>
         </button>
         <div style="text-align:center; margin-bottom:var(--space-8);">

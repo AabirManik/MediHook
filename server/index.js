@@ -220,16 +220,34 @@ app.post('/api/scan-prescription', async (req, res) => {
       model: "gemini-3.6-flash"
     });
 
+    const prompt = `You are a medical OCR and data extraction AI. Extract ALL prescription details from the provided image or text.
 
-    const prompt = `You are a medical OCR and data extraction AI. Extract prescription details from the provided image or text.
-    Return ONLY a valid JSON object with these exact keys:
+IMPORTANT: Extract EVERY medication listed — prescriptions often contain 2-5 drugs. Do NOT stop at the first one.
+
+Return ONLY a valid JSON object with this exact structure:
+{
+  "medications": [
     {
-      "medication": "Name of the primary medication (String)",
-      "dosage": "Dosage amount (String, e.g. 500mg)",
-      "instructions": "Frequency and instructions (String, e.g. Twice a day after meals)",
-      "confidence": "Number from 0 to 100 representing how confident you are in the reading",
-      "doctorName": "Name of the prescribing doctor (String, if found, else 'Unknown')"
-    }`;
+      "name": "Full medication name (String)",
+      "dosage": "Dosage amount with unit (String, e.g. '500mg', '5ml')",
+      "frequency": "How often to take (String, e.g. '1+0+1', '1-0-1', 'twice daily', 'once at night')",
+      "duration": "How long to take (String, e.g. '7 days', '30 days', 'ongoing', or 'Not specified')",
+      "instructions": "Special instructions (String, e.g. 'After meals', 'Before food', 'At bedtime', or 'None')",
+      "confidence": Number from 0-100 for this specific medication
+    }
+  ],
+  "doctorName": "Prescribing doctor's name (String, or 'Unknown' if not found)",
+  "rawText": "The full raw text as read from the prescription (String)",
+  "overallConfidence": Number from 0-100 representing overall scan quality,
+  "warnings": ["Any warnings about illegible text, low confidence, or unclear dosages (Array of strings)"]
+}
+
+Rules:
+- Extract ALL medications, not just the first one
+- If a field is unclear, make your best guess and set confidence below 70
+- rawText should be the complete text as you read it, preserving line breaks
+- If handwriting is very messy, add a warning about legibility
+- Never invent medications that aren't visible in the image/text`;
 
     let result;
     if (image) {
@@ -245,8 +263,31 @@ app.post('/api/scan-prescription', async (req, res) => {
     }
 
     let responseText = result.response.text();
-    responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    // Robust JSON extraction: find the first { ... } block
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      responseText = jsonMatch[0];
+    } else {
+      responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    }
     const data = JSON.parse(responseText);
+    
+    // Backward compatibility: ensure medications array exists
+    if (!data.medications || !Array.isArray(data.medications)) {
+      // Legacy single-med format fallback
+      data.medications = [{
+        name: data.medication || 'Unknown',
+        dosage: data.dosage || '',
+        frequency: 'Not specified',
+        duration: 'Not specified',
+        instructions: data.instructions || '',
+        confidence: data.confidence || 50
+      }];
+      data.overallConfidence = data.confidence || 50;
+      data.rawText = data.rawText || '';
+      data.warnings = data.warnings || [];
+      data.doctorName = data.doctorName || 'Unknown';
+    }
     
     res.json(data);
 
@@ -259,20 +300,57 @@ app.post('/api/scan-prescription', async (req, res) => {
 // DRUG INTERACTIONS ENGINE (Powered by Gemini)
 app.post('/api/check-interactions', async (req, res) => {
   try {
-    const { medications } = req.body; 
+    const { medications, kidneyIssue, liverIssue } = req.body; 
     if (!medications || medications.length < 2) {
-      return res.json({ hasInteraction: false });
+      return res.json({ pairs: [], drugRisks: {}, summary: 'Need at least 2 medications to check interactions.' });
     }
 
     const model = genAI.getGenerativeModel({ 
       model: "gemini-3.6-flash"
     });
     
-    const prompt = `You are an expert clinical pharmacologist AI. Analyze the following list of medications for potential interactions and "prescription cascades".
-    Medications: ${medications.join(', ')}
+    const contextParts = [];
+    if (kidneyIssue) contextParts.push('The patient has kidney impairment — consider nephrotoxicity and reduced renal clearance.');
+    if (liverIssue) contextParts.push('The patient has liver impairment — consider hepatotoxicity and reduced hepatic metabolism.');
+    const contextStr = contextParts.length > 0 ? '\nPatient Context: ' + contextParts.join(' ') : '';
+
+    const prompt = `You are an expert clinical pharmacologist AI. Analyze the following list of medications for pairwise drug interactions and prescription cascades.
+    Medications: ${medications.join(', ')}${contextStr}
+    
     Return ONLY a valid JSON object with this exact structure:
-    { "hasInteraction": boolean, "cascade": boolean, "severity": "High" | "Moderate" | "Low" | "None", "message": "Clear explanation of the interaction" }
-    If there are absolutely no known interactions, set hasInteraction to false.`;
+    {
+      "pairs": [
+        {
+          "drugA": "Medication Name A",
+          "drugB": "Medication Name B",
+          "severity": "High" | "Moderate" | "Low",
+          "message": "Clear clinical explanation of the interaction between these two drugs",
+          "cascade": true | false
+        }
+      ],
+      "drugRisks": {
+        "Medication Name": "danger" | "caution" | "safe"
+      },
+      "summary": "Brief 1-2 sentence overall summary of findings"
+    }
+    
+    Rules for pairs:
+    - Only include pairs that have a REAL pharmacological interaction
+    - severity "High" = contraindicated or life-threatening combination
+    - severity "Moderate" = requires monitoring or dose adjustment
+    - severity "Low" = minor interaction, usually clinically insignificant
+    - cascade = true if one drug was prescribed to treat a side effect of another (prescription cascade)
+    - If no interactions exist between any pair, return "pairs": []
+    
+    Rules for drugRisks:
+    - "danger" = drug has HIGH RISK interactions with one or more other drugs in this list, or is contraindicated given patient context
+    - "caution" = drug has moderate interactions or requires monitoring
+    - "safe" = no significant interactions with other drugs in this list
+    - Every medication in the input list MUST appear in drugRisks
+    
+    Rules for summary:
+    - 1-2 sentences max
+    - Mention number of interactions found and overall safety assessment`;
     
     const result = await model.generateContent(prompt);
     let responseText = result.response.text();

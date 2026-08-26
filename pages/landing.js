@@ -1,16 +1,27 @@
+let _landingScrollHandler = null;
+let _landingFaqCleanup = null;
+
+export function cleanupLanding() {
+  if (_landingScrollHandler) {
+    window.removeEventListener('scroll', _landingScrollHandler);
+    _landingScrollHandler = null;
+  }
+}
+
 export function renderLanding(navigate) {
   // Wait a tick for the DOM to update, then bind events for the landing page
   setTimeout(() => {
     // Scroll handling for sticky nav
     const nav = document.getElementById('landing-nav');
     if (nav) {
-      window.addEventListener('scroll', () => {
+      _landingScrollHandler = () => {
         if (window.scrollY > 20) {
           nav.classList.add('scrolled');
         } else {
           nav.classList.remove('scrolled');
         }
-      });
+      };
+      window.addEventListener('scroll', _landingScrollHandler);
     }
 
     // FAQ Accordion logic

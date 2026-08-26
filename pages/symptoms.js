@@ -1,4 +1,13 @@
 // Symptom Checker & Voice Input
+let _symptomsRecognition = null;
+
+export function cleanupSymptoms() {
+  if (_symptomsRecognition) {
+    try { _symptomsRecognition.abort(); } catch(e) {}
+    _symptomsRecognition = null;
+  }
+}
+
 export function renderSymptoms(navigate) {
   const t = window.__t;
 
@@ -67,6 +76,7 @@ export function initSymptoms() {
     }
     
     const recognition = new SpeechRecognition();
+    _symptomsRecognition = recognition;
     recognition.lang = 'en-US';
     recognition.start();
     
