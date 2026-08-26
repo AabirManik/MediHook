@@ -103,4 +103,175 @@ export const db = {
   },
   
   // --- Risk Assessment / Symptoms (Future use via Supabase if needed, though they might still rely on existing backend APIs for Gemini processing) ---
+  // ------------------------------------------------------------------
+  // CAREGIVER INVITATIONS & RELATIONSHIPS
+  // ------------------------------------------------------------------
+  createCaregiverInvitation: async (patientId, caregiverEmail, caregiverName, relationship) => {
+    const { data, error } = await supabase
+      .from('patient_caregiver_invitations')
+      .insert([{
+        patient_id: patientId,
+        caregiver_email: caregiverEmail,
+        caregiver_name: caregiverName,
+        relationship: relationship
+      }])
+      .select('invitation_token')
+      .single();
+    if (error) throw error;
+    return data.invitation_token; // Return token so Node.js/frontend can generate the mock email link
+  },
+
+  getPatientInvitations: async (patientId) => {
+    const { data, error } = await supabase
+      .from('patient_caregiver_invitations')
+      .select('*')
+      .eq('patient_id', patientId)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data;
+  },
+
+  cancelInvitation: async (invitationId) => {
+    const { error } = await supabase
+      .from('patient_caregiver_invitations')
+      .update({ status: 'CANCELLED' })
+      .eq('id', invitationId);
+    if (error) throw error;
+  },
+
+  getCaregiverInvitations: async () => {
+    const { data, error } = await supabase
+      .from('patient_caregiver_invitations')
+      .select('*')
+      .eq('status', 'PENDING');
+    if (error) throw error;
+    
+    // Manually join profiles
+    if (data.length > 0) {
+      const pids = data.map(d => d.patient_id);
+      const { data: profs } = await supabase.from('profiles').select('id, full_name').in('id', pids);
+      const pMap = {};
+      if (profs) profs.forEach(p => pMap[p.id] = p);
+      data.forEach(d => { d.profiles = pMap[d.patient_id] || { full_name: 'Unknown Patient' }; });
+    }
+    return data;
+  },
+
+  acceptCaregiverInvitation: async (token) => {
+    const { data, error } = await supabase.rpc('accept_caregiver_invitation', { invite_token: token });
+    if (error) throw error;
+    return data;
+  },
+
+  getConnectedPatients: async (caregiverId) => {
+    const { data, error } = await supabase
+      .from('patient_caregivers')
+      .select('patient_id, relationship, status')
+      .eq('caregiver_id', caregiverId)
+      .eq('status', 'ACTIVE');
+    if (error) throw error;
+    
+    if (data.length > 0) {
+      const pids = data.map(d => d.patient_id);
+      const { data: profs } = await supabase.from('profiles').select('id, full_name, health_id').in('id', pids);
+      const pMap = {};
+      if (profs) profs.forEach(p => pMap[p.id] = p);
+      data.forEach(d => { d.profiles = pMap[d.patient_id] || { full_name: 'Unknown Patient', health_id: 'UNKNOWN' }; });
+    }
+    return data;
+  },
+
+  getConnectedCaregivers: async (patientId) => {
+    const { data, error } = await supabase
+      .from('patient_caregivers')
+      .select('caregiver_id, relationship, status')
+      .eq('patient_id', patientId)
+      .eq('status', 'ACTIVE');
+    if (error) throw error;
+    
+    if (data.length > 0) {
+      const cids = data.map(d => d.caregiver_id);
+      const { data: profs } = await supabase.from('profiles').select('id, full_name').in('id', cids);
+      const pMap = {};
+      if (profs) profs.forEach(p => pMap[p.id] = p);
+      data.forEach(d => { d.profiles = pMap[d.caregiver_id] || { full_name: 'Unknown Caregiver' }; });
+    }
+    return data;
+  },
+
+  revokeCaregiver: async (patientId, caregiverId) => {
+    const { error } = await supabase
+      .from('patient_caregivers')
+      .update({ status: 'REVOKED' })
+      .eq('patient_id', patientId)
+      .eq('caregiver_id', caregiverId);
+    if (error) throw error;
+  },
+
+  // ------------------------------------------------------------------
+  // SOS SYSTEM
+  // ------------------------------------------------------------------
+  triggerSOS: async (patientId, message) => {
+    const { data, error } = await supabase
+      .from('sos_events')
+      .insert([{
+        patient_id: patientId,
+        message: message || 'EMERGENCY SOS TRIGGERED'
+      }])
+      .select('*')
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  getActiveSOSEvents: async () => {
+    const { data, error } = await supabase
+      .from('sos_events')
+      .select('*')
+      .eq('status', 'ACTIVE')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    
+    if (data.length > 0) {
+      const pids = data.map(d => d.patient_id);
+      const { data: profs } = await supabase.from('profiles').select('id, full_name').in('id', pids);
+      const pMap = {};
+      if (profs) profs.forEach(p => pMap[p.id] = p);
+      data.forEach(d => { d.profiles = pMap[d.patient_id] || { full_name: 'Unknown Patient' }; });
+    }
+    return data;
+  },
+
+  acknowledgeSOS: async (sosId) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase
+      .from('sos_events')
+      .update({ 
+        status: 'ACKNOWLEDGED', 
+        acknowledged_by: user.id, 
+        acknowledged_at: new Date().toISOString() 
+      })
+      .eq('id', sosId);
+    if (error) throw error;
+  },
+
+  resolveSOS: async (sosId) => {
+    const { error } = await supabase
+      .from('sos_events')
+      .update({ 
+        status: 'RESOLVED', 
+        resolved_at: new Date().toISOString() 
+      })
+      .eq('id', sosId);
+    if (error) throw error;
+  },
+
+  subscribeToSOS: (callback) => {
+    return supabase
+      .channel('public:sos_events')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'sos_events' }, payload => {
+        callback(payload);
+      })
+      .subscribe();
+  }
 };

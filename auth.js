@@ -58,6 +58,11 @@ export const auth = {
     if (error) throw error;
   },
 
+  updateRole: async (userId, role) => {
+    const { error } = await supabase.from('profiles').update({ role }).eq('id', userId);
+    if (error) throw error;
+  },
+
   getCurrentUser: async () => {
     const { data: { user } } = await supabase.auth.getUser();
     return user;

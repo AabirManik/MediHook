@@ -400,7 +400,11 @@ function bindPageEvents(page) {
              await auth.signUp(email, password, nameVal, role);
              window.showToast("Account created successfully!");
           } else {
-             await auth.signIn(email, password);
+             const { user } = await auth.signIn(email, password);
+             if (user) {
+               await auth.updateRole(user.id, role);
+               window.__currentUserRole = role; // Sync immediately
+             }
              window.showToast("Login Successful!");
           }
           
@@ -501,6 +505,14 @@ if (savedProfileName && !window.__currentUserName) {
 let isInitialLoad = true;
 
 auth.onAuthStateChange(async (event, session) => {
+  // Check for caregiver invitation link in URL hash
+  let inviteToken = null;
+  const hash = window.location.hash;
+  if (hash.includes('caregiver-invite')) {
+    const params = new URLSearchParams(hash.split('?')[1]);
+    inviteToken = params.get('token');
+  }
+
   if (session?.user) {
     window.__isLoggedIn = true;
     window.__currentUserId = session.user.id;
@@ -513,14 +525,24 @@ auth.onAuthStateChange(async (event, session) => {
       window.__currentHealthId = profile.health_id || 'SANJ-XXXX';
     }
     
-    if (isInitialLoad || currentPage === 'landing' || (currentPage === 'profile' && event === 'SIGNED_IN')) {
+    if (inviteToken) {
+      // User is logged in and clicked an invite link! Route them to caregiver hub where the invite logic will fire
+      window.__pendingInviteToken = inviteToken;
+      navigate('caregiver');
+    } else if (isInitialLoad || currentPage === 'landing' || (currentPage === 'profile' && event === 'SIGNED_IN')) {
       navigate(window.__currentUserRole === 'caregiver' ? 'caregiver' : 'home');
     }
   } else {
     window.__isLoggedIn = false;
     window.__currentUserId = null;
     
-    if (isInitialLoad || currentPage !== 'landing') {
+    if (inviteToken) {
+       window.showToast("Please log in or sign up to accept your caregiver invitation.", true);
+       // Clear hash to avoid looping, but save token to local storage so they can accept it after signup
+       localStorage.setItem('pending_invite_token', inviteToken);
+       window.location.hash = '';
+       navigate('profile');
+    } else if (isInitialLoad || currentPage !== 'landing') {
       navigate('landing');
     }
   }

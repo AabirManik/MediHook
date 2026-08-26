@@ -141,5 +141,60 @@ export const api = {
       console.error('API Error [analyzeSymptoms]:', err);
       throw err;
     }
+  },
+
+  // ------------------------------------------------------------------
+  // CAREGIVER & SOS SYSTEM (Delegating to db.js)
+  // ------------------------------------------------------------------
+  createCaregiverInvitation: async (patientId, caregiverEmail, caregiverName, relationship) => {
+    return await db.createCaregiverInvitation(patientId, caregiverEmail, caregiverName, relationship);
+  },
+  
+  getPatientInvitations: async (patientId) => {
+    return await db.getPatientInvitations(patientId);
+  },
+  
+  cancelInvitation: async (invitationId) => {
+    return await db.cancelInvitation(invitationId);
+  },
+  
+  getCaregiverInvitations: async () => {
+    return await db.getCaregiverInvitations();
+  },
+  
+  acceptCaregiverInvitation: async (token) => {
+    return await db.acceptCaregiverInvitation(token);
+  },
+  
+  getConnectedPatients: async (caregiverId) => {
+    return await db.getConnectedPatients(caregiverId);
+  },
+  
+  getConnectedCaregivers: async (patientId) => {
+    return await db.getConnectedCaregivers(patientId);
+  },
+  
+  revokeCaregiver: async (patientId, caregiverId) => {
+    return await db.revokeCaregiver(patientId, caregiverId);
+  },
+  
+  triggerSOS: async (patientId, message) => {
+    return await db.triggerSOS(patientId, message);
+  },
+  
+  getActiveSOSEvents: async () => {
+    return await db.getActiveSOSEvents();
+  },
+  
+  acknowledgeSOS: async (sosId) => {
+    return await db.acknowledgeSOS(sosId);
+  },
+  
+  resolveSOS: async (sosId) => {
+    return await db.resolveSOS(sosId);
+  },
+
+  subscribeToSOS: (callback) => {
+    return db.subscribeToSOS(callback);
   }
 };

@@ -1,22 +1,31 @@
 // Caregiver Dashboard — Dynamic, Production-Ready
 export function renderCaregiver(navigate) {
   const t = window.__t;
-  const userName = window.__currentUserName || 'Patient';
+  const userName = window.__currentUserName || 'Caregiver';
 
   return `
   <div class="page-enter">
     <header style="margin-bottom: var(--space-8);">
       <div style="display:flex; align-items:center; justify-content:space-between;">
         <div>
-          <h2 class="page-title" style="font-size:2rem;">${t('cgTitle')}</h2>
-          <p class="page-subtitle">Monitoring ${userName}'s holistic health and medication compliance.</p>
-        </div>
-        <div style="background:var(--secondary-container); padding:var(--space-2) var(--space-4); border-radius:var(--radius-full); display:flex; align-items:center; gap:var(--space-2);">
-          <span class="material-symbols-outlined" style="color:var(--primary);">group</span>
-          <span style="font-weight:600; font-size:0.875rem; color:var(--primary);">${userName}</span>
+          <h2 class="page-title" style="font-size:2rem;">Caregiver Hub</h2>
+          <p class="page-subtitle">Monitoring your connected patients.</p>
         </div>
       </div>
     </header>
+
+    <!-- Invitation Acceptance Overlay -->
+    <div id="caregiver-invite-overlay" class="modal-overlay" style="display:none; z-index:9999;">
+      <div class="modal-card" style="text-align:center;">
+        <span class="material-symbols-outlined" style="font-size:3rem; color:var(--primary); margin-bottom:var(--space-4);">mail</span>
+        <h3 style="margin-bottom:var(--space-2);">Caregiver Invitation</h3>
+        <p style="color:var(--on-surface-variant); margin-bottom:var(--space-6); font-size:0.875rem;">You have been invited to connect with a patient. By accepting, you agree to receive their SOS alerts and health updates.</p>
+        <div style="display:flex; gap:var(--space-3);">
+          <button id="decline-invite-btn" class="btn-secondary" style="flex:1; justify-content:center;">Decline</button>
+          <button id="accept-invite-btn" class="btn-primary" style="flex:1; justify-content:center;">Accept Invite</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Alert Card (Dynamic) -->
     <div id="caregiver-alert-container" style="margin-bottom: var(--space-8);">
@@ -56,141 +65,193 @@ export async function initCaregiver() {
 
   const { api } = await import('../api.js');
   const userId = window.__currentUserId || localStorage.getItem('userId');
-  const userName = window.__currentUserName || 'Patient';
+  const userName = window.__currentUserName || 'Caregiver';
   const t = window.__t;
 
-  // ── Alert Card ──
+  // ── Invitation Acceptance Logic ──
+  const pendingToken = window.__pendingInviteToken || localStorage.getItem('pending_invite_token');
+  if (pendingToken) {
+    const inviteOverlay = document.getElementById('caregiver-invite-overlay');
+    if (inviteOverlay) {
+      inviteOverlay.style.display = 'flex';
+      
+      document.getElementById('decline-invite-btn')?.addEventListener('click', () => {
+         localStorage.removeItem('pending_invite_token');
+         window.__pendingInviteToken = null;
+         inviteOverlay.style.display = 'none';
+         window.showToast("Invitation declined.");
+      });
+      
+      document.getElementById('accept-invite-btn')?.addEventListener('click', async (e) => {
+         e.target.textContent = 'Accepting...';
+         try {
+           await api.acceptCaregiverInvitation(pendingToken);
+           localStorage.removeItem('pending_invite_token');
+           window.__pendingInviteToken = null;
+           inviteOverlay.style.display = 'none';
+           window.showToast("Successfully connected to patient!");
+           // Reload dashboard data
+           loadCaregiverDashboardData(api, userId, alertContainer, complianceChart, contactsContainer);
+         } catch (err) {
+           window.showToast("Failed to accept: " + err.message, true);
+           e.target.textContent = 'Accept Invite';
+         }
+      });
+    }
+  }
+
+  // Initial load
+  loadCaregiverDashboardData(api, userId, alertContainer, complianceChart, contactsContainer);
+
+  // Subscribe to realtime SOS updates
+  if (!window.__sosSubscription) {
+    window.__sosSubscription = api.subscribeToSOS((payload) => {
+      console.log('Realtime SOS event received:', payload);
+      // Reload dashboard data instantly when an SOS is triggered, acknowledged, or resolved
+      loadCaregiverDashboardData(api, userId, alertContainer, complianceChart, contactsContainer);
+      
+      if (payload.eventType === 'INSERT' && payload.new.status === 'ACTIVE') {
+        window.showToast("🚨 EMERGENCY SOS RECEIVED 🚨", false);
+        // Play an alert sound (optional if browser allows)
+        try {
+          const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+          audio.play().catch(e => console.log('Audio autoplay blocked'));
+        } catch(e) {}
+      }
+    });
+  }
+}
+
+async function loadCaregiverDashboardData(api, userId, alertContainer, complianceChart, contactsContainer) {
+  if (!userId) return;
+  
   try {
-    let prescriptions = [];
-    if (userId && userId !== '1' && userId !== 'undefined') {
-      prescriptions = await api.getPrescriptions(userId);
+    // 0. Fetch pending invites for this caregiver (using their email via RLS)
+    const pendingInvites = await api.getCaregiverInvitations();
+    
+    // If there are pending invites and the modal isn't already showing, show the first one
+    if (pendingInvites.length > 0) {
+      const inviteOverlay = document.getElementById('caregiver-invite-overlay');
+      if (inviteOverlay && inviteOverlay.style.display === 'none') {
+        const invite = pendingInvites[0]; // Just show the first one
+        inviteOverlay.style.display = 'flex';
+        inviteOverlay.querySelector('p').textContent = `You have been invited by ${invite.profiles?.full_name || 'a patient'} to connect as their ${invite.relationship}.`;
+        
+        document.getElementById('decline-invite-btn').onclick = async () => {
+           inviteOverlay.style.display = 'none';
+           try { await api.cancelInvitation(invite.id); } catch(e){}
+           loadCaregiverDashboardData(api, userId, alertContainer, complianceChart, contactsContainer);
+        };
+        
+        document.getElementById('accept-invite-btn').onclick = async (e) => {
+           e.target.textContent = 'Accepting...';
+           try {
+             await api.acceptCaregiverInvitation(invite.invitation_token);
+             inviteOverlay.style.display = 'none';
+             window.showToast("Successfully connected to patient!");
+             loadCaregiverDashboardData(api, userId, alertContainer, complianceChart, contactsContainer);
+           } catch (err) {
+             window.showToast("Failed to accept: " + err.message, true);
+           } finally {
+             e.target.textContent = 'Accept Invite';
+           }
+        };
+      }
     }
 
-    if (prescriptions.length === 0) {
+    // 1. Fetch connected patients
+    const connectedPatients = await api.getConnectedPatients(userId);
+    
+    if (connectedPatients.length === 0) {
+      alertContainer.innerHTML = `
+        <div class="card" style="border-left:4px solid var(--outline); padding:var(--space-5);">
+          <div style="display:flex; align-items:center; gap:var(--space-3);">
+            <span class="material-symbols-outlined" style="color:var(--outline); font-size:1.75rem;">person_off</span>
+            <div>
+              <h3 style="font-weight:700; color:var(--on-surface); font-size:1rem;">No Patients Connected</h3>
+              <p style="font-size:0.875rem; color:var(--on-surface-variant);">You have not accepted any caregiver invitations yet. When a patient invites you, the connection will appear here.</p>
+            </div>
+          </div>
+        </div>
+      `;
+      complianceChart.innerHTML = '<div style="text-align:center; flex:1; font-size:0.875rem; color:var(--outline);">No data available</div>';
+      contactsContainer.innerHTML = '<div class="card" style="padding:var(--space-4); text-align:center; border:2px dashed var(--outline-variant); background:transparent;"><p style="font-size:0.875rem; color:var(--on-surface-variant);">No active connections to trigger SOS for.</p></div>';
+      return;
+    }
+    
+    // 2. Fetch active SOS events
+    const sosEvents = await api.getActiveSOSEvents();
+    const activeSOS = sosEvents.filter(sos => sos.status === 'ACTIVE');
+    
+    if (activeSOS.length > 0) {
+      // Display SOS Alert
+      const sos = activeSOS[0];
+      alertContainer.innerHTML = `
+        <div class="alert-warning-card" style="border-color:var(--error); animation: pulse 2s infinite;">
+          <div class="glow" style="background:radial-gradient(circle at 10% 10%, rgba(255,0,0,0.2) 0%, transparent 100%);"></div>
+          <div class="alert-header">
+            <div class="alert-icon-wrap" style="background:var(--error);"><span class="material-symbols-outlined" style="color:white;">emergency</span></div>
+            <div>
+              <h3 style="color:var(--error);">EMERGENCY SOS</h3>
+              <p class="severity" style="color:var(--error);">Triggered by ${sos.profiles?.full_name}</p>
+            </div>
+          </div>
+          <div class="alert-body">
+            <p>${sos.message}</p>
+            <button class="btn-error ack-sos-btn" data-id="${sos.id}" style="width:100%; margin-top:var(--space-4); justify-content:center;">ACKNOWLEDGE ALERT</button>
+          </div>
+        </div>
+      `;
+      
+      document.querySelector('.ack-sos-btn')?.addEventListener('click', async (e) => {
+        try {
+          e.target.textContent = 'Acknowledging...';
+          await api.acknowledgeSOS(e.target.dataset.id);
+          window.showToast("SOS Acknowledged!");
+          loadCaregiverDashboardData(api, userId, alertContainer, complianceChart, contactsContainer);
+        } catch (err) {
+          window.showToast("Error acknowledging: " + err.message, true);
+          e.target.textContent = 'ACKNOWLEDGE ALERT';
+        }
+      });
+    } else {
+      // Normal clear state
+      const patientNames = connectedPatients.map(p => p.profiles?.full_name).join(', ');
       alertContainer.innerHTML = `
         <div class="card" style="border-left:4px solid var(--primary); padding:var(--space-5);">
           <div style="display:flex; align-items:center; gap:var(--space-3);">
-            <span class="material-symbols-outlined" style="color:var(--primary); font-size:1.75rem;">check_circle</span>
+            <span class="material-symbols-outlined" style="color:var(--primary); font-size:1.75rem;">verified</span>
             <div>
               <h3 style="font-weight:700; color:var(--primary); font-size:1rem;">All Clear</h3>
-              <p style="font-size:0.875rem; color:var(--on-surface-variant);">No active prescriptions to monitor. Scan a prescription to begin tracking.</p>
+              <p style="font-size:0.875rem; color:var(--on-surface-variant);">Monitoring active for: ${patientNames}. No emergency alerts at this time.</p>
             </div>
           </div>
-        </div>
-      `;
-    } else {
-      const latestMed = prescriptions[prescriptions.length - 1];
-      const now = new Date();
-      const hour = now.getHours();
-      // Simulate compliance: if it's past noon and no "taken" flag, show a reminder
-      const isMissed = hour >= 12;
-      
-      if (isMissed) {
-        alertContainer.innerHTML = `
-          <div class="alert-warning-card" style="cursor:pointer;">
-            <div class="glow"></div>
-            <div class="alert-header">
-              <div class="alert-icon-wrap"><span class="material-symbols-outlined">warning</span></div>
-              <div>
-                <h3>Dose Reminder</h3>
-                <p class="severity">Severity: Medium</p>
-              </div>
-            </div>
-            <div class="alert-body">
-              <p>${userName} has not confirmed the ${latestMed.dosage || ''} dose of <strong>${latestMed.medication}</strong> today. Tap to call or send a gentle reminder.</p>
-            </div>
-          </div>
-        `;
-      } else {
-        alertContainer.innerHTML = `
-          <div class="card" style="border-left:4px solid var(--primary); padding:var(--space-5);">
-            <div style="display:flex; align-items:center; gap:var(--space-3);">
-              <span class="material-symbols-outlined" style="color:var(--primary); font-size:1.75rem;">verified</span>
-              <div>
-                <h3 style="font-weight:700; color:var(--primary); font-size:1rem;">On Track</h3>
-                <p style="font-size:0.875rem; color:var(--on-surface-variant);">${userName}'s next dose of <strong>${latestMed.medication}</strong> is scheduled. No alerts at this time.</p>
-              </div>
-            </div>
-          </div>
-        `;
-      }
-    }
-
-    // ── Compliance Chart (based on real prescription count per day of the week) ──
-    const days = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
-    const today = new Date().getDay(); // 0=Sun
-    const todayIdx = today === 0 ? 6 : today - 1; // Convert to MON=0 index
-
-    let barsHtml = '';
-    days.forEach((day, i) => {
-      let height, color, labelColor;
-      if (i < todayIdx) {
-        // Past days: full compliance (based on prescriptions existing)
-        height = prescriptions.length > 0 ? '4rem' : '1rem';
-        color = 'var(--primary)';
-        labelColor = '';
-      } else if (i === todayIdx) {
-        // Today
-        height = prescriptions.length > 0 ? '2rem' : '0.5rem';
-        color = 'var(--tertiary)';
-        labelColor = 'color:var(--primary); font-weight:700;';
-      } else {
-        // Future days
-        height = '0rem';
-        color = 'var(--surface-container-high)';
-        labelColor = 'color:var(--outline);';
-      }
-      barsHtml += `
-        <div style="text-align:center; flex:1;">
-          <div style="height:${height}; width:1rem; background:${color}; border-radius:var(--radius-full); margin:0 auto; transition:height 0.5s ease;"></div>
-          <p style="font-size:0.75rem; font-weight:600; margin-top:var(--space-2); ${labelColor}">${i === todayIdx ? 'TODAY' : day}</p>
-        </div>
-      `;
-    });
-    complianceChart.innerHTML = barsHtml;
-
-    // ── Emergency Contacts ──
-    let contacts = [];
-    try {
-      if (userId && userId !== '1' && userId !== 'undefined') {
-        contacts = await api.getContacts(userId);
-      }
-    } catch (e) { /* ignore */ }
-
-    // Build buttons from real contacts
-    let contactsHtml = `
-      <button class="btn-error" id="sos-trigger-btn" style="border-radius:var(--radius-xl); font-size:1rem; justify-content:flex-start;">
-        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">emergency_home</span>
-        ${t('triggerSos')}
-      </button>
-    `;
-    
-    if (contacts.length > 0) {
-      contacts.forEach(c => {
-        const icon = c.isSOS ? 'emergency' : 'call';
-        const style = c.isSOS 
-          ? 'background:var(--error-container); color:var(--on-error-container); border:none;' 
-          : '';
-        contactsHtml += `
-          <a href="tel:${c.phone}" class="btn-secondary" style="border-radius:var(--radius-xl); font-size:1rem; padding:var(--space-5); justify-content:flex-start; text-decoration:none; ${style}">
-            <span class="material-symbols-outlined">${icon}</span>
-            Call ${c.name} (${c.relation || 'Contact'})
-          </a>
-        `;
-      });
-    } else {
-      contactsHtml += `
-        <div class="card" style="padding:var(--space-4); text-align:center; border:2px dashed var(--outline-variant); background:transparent;">
-          <p style="font-size:0.875rem; color:var(--on-surface-variant);">No emergency contacts added. Go to Profile → Add Contact.</p>
         </div>
       `;
     }
-    contactsContainer.innerHTML = contactsHtml;
 
-    // SOS button handler
-    document.getElementById('sos-trigger-btn')?.addEventListener('click', () => {
-      window.showToast('Emergency SOS triggered! Alerting all contacts.', true);
-    });
+    // ── Connected Patients List ──
+    contactsContainer.innerHTML = connectedPatients.map(p => `
+      <div class="card" style="display:flex; justify-content:space-between; align-items:center; border-left: 4px solid var(--primary);">
+        <div style="display:flex; align-items:center; gap:var(--space-3);">
+          <div class="brand-avatar" style="width:2.5rem; height:2.5rem; background:var(--surface-container-high);">
+            <span class="material-symbols-outlined" style="color:var(--primary);">person</span>
+          </div>
+          <div>
+            <h4 style="font-weight:700;">${p.profiles?.full_name || 'Patient'}</h4>
+            <p style="font-size:0.75rem; color:var(--on-surface-variant);">Relationship: ${p.relationship}</p>
+          </div>
+        </div>
+        <div style="display:flex; gap:var(--space-2);">
+          <button class="icon-btn" style="color:var(--primary);" title="Call Patient">
+            <span class="material-symbols-outlined">call</span>
+          </button>
+        </div>
+      </div>
+    `).join('');
+
+    // Static Chart Placeholder
+    complianceChart.innerHTML = '<div style="text-align:center; flex:1; font-size:0.875rem; color:var(--outline);">Compliance tracking active</div>';
 
   } catch (err) {
     console.error('Caregiver init error:', err);

@@ -182,6 +182,41 @@ export async function initHome() {
       if (takeDoseBtn) takeDoseBtn.style.display = 'none';
     }
 
+    // 4. Bind SOS Button
+    const sosBtn = document.getElementById('sos-btn');
+    if (sosBtn) {
+      sosBtn.addEventListener('click', async () => {
+        if (!userId || userId === '1') {
+          return window.showToast('Please log in to trigger an SOS alert.', true);
+        }
+        
+        // Confirm first to avoid accidental triggers
+        if (confirm('TRIGGER EMERGENCY SOS? This will immediately alert all connected caregivers.')) {
+          try {
+            sosBtn.textContent = 'TRIGGERING...';
+            sosBtn.style.opacity = '0.5';
+            
+            await api.triggerSOS(userId, 'EMERGENCY: Patient triggered SOS from Home screen.');
+            window.showToast('SOS Alert Sent to Caregivers!', false);
+            
+            // Revert button
+            sosBtn.innerHTML = `
+              <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">emergency_share</span>
+              SOS ACTIVE
+            `;
+            sosBtn.style.opacity = '1';
+          } catch (err) {
+            window.showToast('Error triggering SOS: ' + err.message, true);
+            sosBtn.innerHTML = `
+              <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">emergency_share</span>
+              EMERGENCY SOS
+            `;
+            sosBtn.style.opacity = '1';
+          }
+        }
+      });
+    }
+
   } catch (err) {
     console.error('Home Init Error:', err);
   }
