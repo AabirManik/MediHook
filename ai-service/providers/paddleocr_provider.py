@@ -26,7 +26,7 @@ class PaddleOCRProvider(BaseOCRProvider):
         logging.info("Initializing PaddleOCR Engine...")
         # We use 'en' for English medical prescriptions. 
         # use_angle_cls=True helps with slightly rotated text lines.
-        self.ocr = PaddleOCR(use_angle_cls=True, lang='en', show_log=False)
+        self.ocr = PaddleOCR(use_angle_cls=True, lang='en')
 
     def extract_text(self, image_bytes: bytes) -> Dict[str, Any]:
         """
