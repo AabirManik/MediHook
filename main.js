@@ -5,10 +5,10 @@
 import { t, setLanguage, getLanguage } from './translate.js';
 import { renderHome, initHome } from './pages/home.js';
 import { renderScanner } from './pages/scanner.js';
-import { renderTimeline, initTimeline } from './pages/timeline.js';
+import { renderTimeline, initTimeline, cleanupTimeline } from './pages/timeline.js';
 import { renderMood, initMood, cleanupMood } from './pages/mood.js';
 import { renderRiskAnalysis, initRiskAnalysis } from './pages/risk-analysis.js';
-import { renderAlert } from './pages/alert.js';
+import { renderAlert, initAlert, cleanupAlert } from './pages/alert.js';
 import { renderCaregiver, initCaregiver, cleanupCaregiver } from './pages/caregiver.js';
 import { renderSymptoms, initSymptoms, cleanupSymptoms } from './pages/symptoms.js';
 import { renderMedications, initMedications } from './pages/medications.js';
@@ -142,8 +142,10 @@ function navigate(page, skipPushState) {
     caregiver: cleanupCaregiver,
     symptoms: cleanupSymptoms,
     mood: cleanupMood,
+    alert: cleanupAlert,
     'drug-interaction': cleanupDrugInteraction,
     clearscript: cleanupClearScript,
+    timeline: cleanupTimeline,
   };
   currentCleanup = cleanupMap[page] || null;
   isNavigating = false;
@@ -311,17 +313,7 @@ function bindPageEvents(page) {
   // (caregiver events are handled by initCaregiver)
 
   if (page === 'alert') {
-    main.querySelector('.btn-primary')?.addEventListener('click', () => {
-      window.showToast("Contacting doctor immediately!", true);
-      navigate('home');
-    });
-    main.querySelector('.btn-error')?.addEventListener('click', () => {
-      window.showToast("Siren activated!", true);
-    });
-    main.querySelector('.btn-tertiary-warm')?.addEventListener('click', () => {
-      window.showToast("Alert dismissed for 1 hour");
-      navigate('home');
-    });
+    initAlert();
   }
 
   // --- Generic Fallback for ALL buttons ---

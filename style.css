@@ -1184,6 +1184,60 @@ body::before {
   color: var(--on-surface-variant);
 }
 
+/* Timeline AI Loading */
+.timeline-loading-icon {
+  animation: spin 1s linear infinite;
+  vertical-align: middle;
+  margin-right: 0.25rem;
+}
+
+/* Timeline Report Section */
+.timeline-report-section {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.timeline-correlations {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.timeline-correlation-item {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.timeline-corr-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.timeline-corr-header strong {
+  color: white;
+  font-size: 0.9rem;
+}
+
+.timeline-recommendations {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.timeline-rec-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-size: 0.85rem;
+  color: var(--primary-fixed);
+  line-height: 1.5;
+}
+
 
 /* ============================
    MOOD TRACKER
@@ -1617,6 +1671,181 @@ body::before {
 .alert-doc-icon .material-symbols-outlined { font-size: 1.75rem; color: var(--primary); }
 .alert-doc-card h4 { font-weight: 700; color: var(--primary); margin-bottom: var(--space-2); }
 .alert-doc-card p { font-size: 0.875rem; color: var(--on-surface-variant); margin-bottom: var(--space-6); padding: 0 var(--space-4); }
+
+/* Dynamic Alert Page */
+.alert-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-10) 0;
+  text-align: center;
+  color: var(--on-surface-variant);
+}
+.alert-loading p { font-size: 0.875rem; }
+.alert-error-state, .alert-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-10) 0;
+  text-align: center;
+}
+.alert-error-state h4, .alert-empty-state h4 { font-weight: 700; color: var(--on-surface); }
+.alert-error-state p, .alert-empty-state p { font-size: 0.875rem; color: var(--on-surface-variant); max-width: 280px; }
+
+.alert-status-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border-radius: var(--radius-2xl);
+  margin-bottom: var(--space-6);
+  animation: fadeSlideIn 0.4s ease-out;
+}
+.alert-status-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.alert-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+.alert-metric-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: var(--space-4) var(--space-2);
+  background: var(--surface-container-lowest);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-xl);
+  text-align: center;
+}
+.alert-metric-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--on-surface);
+  line-height: 1;
+}
+.alert-metric-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--on-surface-variant);
+}
+
+.alert-all-clear {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background: #E8F5E9;
+  border: 1px solid #C8E6C9;
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--space-6);
+}
+.alert-all-clear h4 { font-weight: 700; color: #2E7D32; }
+.alert-all-clear p { font-size: 0.85rem; color: #388E3C; }
+
+.alert-issue-card {
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-xl);
+  animation: fadeSlideIn 0.3s ease-out both;
+}
+.alert-issue-card:nth-child(2) { animation-delay: 0.05s; }
+.alert-issue-card:nth-child(3) { animation-delay: 0.1s; }
+.alert-issue-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.alert-issue-header h4 {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.alert-issue-body {
+  font-size: 0.85rem;
+  color: var(--on-surface-variant);
+  line-height: 1.5;
+}
+.alert-issue-body p { margin: 0; }
+.alert-issue-body strong { color: var(--on-surface); }
+.alert-issue-pair {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.alert-issue-pair:last-child { border-bottom: none; }
+.alert-severity-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.alert-actions-section {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.alert-patient-card {
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface-container-lowest);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-xl);
+  animation: fadeSlideIn 0.3s ease-out both;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.alert-patient-card:hover {
+  border-color: var(--primary-container);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.alert-patient-card:nth-child(2) { animation-delay: 0.05s; }
+.alert-patient-card:nth-child(3) { animation-delay: 0.1s; }
+.alert-patient-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid;
+  border-radius: var(--radius-lg);
+  margin-bottom: 10px;
+}
+.alert-patient-status h4 { font-weight: 700; font-size: 0.95rem; }
+.alert-patient-status-label { font-size: 0.75rem; font-weight: 600; color: var(--on-surface-variant); }
+.alert-patient-metrics {
+  display: flex;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--on-surface-variant);
+  margin-bottom: 4px;
+}
+.alert-patient-time {
+  font-size: 0.7rem;
+  color: var(--outline);
+}
+
+@media (max-width: 48rem) {
+  .alert-metrics-grid { grid-template-columns: repeat(2, 1fr); }
+  .alert-actions-section { flex-direction: column; }
+}
 
 
 /* ============================

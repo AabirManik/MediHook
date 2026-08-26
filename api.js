@@ -143,6 +143,22 @@ export const api = {
     }
   },
 
+  analyzeTimeline: async (medications, moods, patientContext = {}) => {
+    try {
+      const resp = await fetch(`${BASE_URL}/timeline-analysis`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ medications, moods, patientContext })
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Server Error');
+      return data;
+    } catch (err) {
+      console.error('API Error [analyzeTimeline]:', err);
+      throw err;
+    }
+  },
+
   // ------------------------------------------------------------------
   // CAREGIVER & SOS SYSTEM (Delegating to db.js)
   // ------------------------------------------------------------------

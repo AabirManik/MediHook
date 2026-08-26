@@ -389,6 +389,69 @@ Check for any correlations between the symptoms and side effects of the medicati
   }
 });
 
+// TIMELINE AI ANALYSIS ENGINE
+app.post('/api/timeline-analysis', async (req, res) => {
+  try {
+    const { medications, moods, patientContext } = req.body;
+    const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
+
+    const medList = (medications || []).map(m => `${m.medication}${m.dosage ? ' (' + m.dosage + ')' : ''}`);
+    const moodSummary = (moods || []).map(m => `Level ${m.moodlevel}/5 on ${m.date || 'unknown date'}${m.notes ? ' — ' + m.notes : ''}`);
+
+    const contextParts = [];
+    if (patientContext?.kidneyIssue) contextParts.push('Patient has kidney impairment.');
+    if (patientContext?.liverIssue) contextParts.push('Patient has liver impairment.');
+    const contextStr = contextParts.length > 0 ? '\nPatient Context: ' + contextParts.join(' ') : '';
+
+    const prompt = `You are a clinical health analysis AI. Analyze this patient's medication and mood data to find correlations and provide actionable insights.
+
+Current Medications (${medList.length}):
+${medList.length > 0 ? medList.map((m, i) => `${i + 1}. ${m}`).join('\n') : 'No active medications'}
+
+Mood History (${moodSummary.length} entries):
+${moodSummary.length > 0 ? moodSummary.slice(0, 20).join('\n') : 'No mood data available'}
+${contextStr}
+
+Return ONLY a valid JSON object:
+{
+  "title": "Short headline insight (max 8 words)",
+  "summary": "1-2 sentence overview of key findings",
+  "correlations": [
+    {
+      "drug": "Medication Name",
+      "observation": "How this drug may be affecting mood/well-being",
+      "moodChange": "positive" | "negative" | "neutral" | "unclear",
+      "confidence": "high" | "medium" | "low"
+    }
+  ],
+  "stress": 45,
+  "energy": 60,
+  "recovery": 55,
+  "recommendations": [
+    "Specific actionable recommendation for the patient"
+  ]
+}
+
+Rules:
+- stress/energy/recovery must be integers 0-100
+- Base mood trends on the actual mood levels and dates provided
+- If mood levels are consistently 4-5, energy should be high and stress low
+- If mood levels are declining over time, recovery should be lower
+- If medications include known mood-affecting drugs (SSRIs, beta-blockers, corticosteroids, etc.), note the correlation
+- correlations can be empty if medications don't have known mood effects
+- recommendations should be 2-4 specific, actionable items
+- If there's insufficient data, say so in the summary but still provide reasonable estimates`;
+
+    const result = await model.generateContent(prompt);
+    let responseText = result.response.text();
+    responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    res.json(JSON.parse(responseText));
+  } catch (err) {
+    console.error('Timeline analysis error:', err);
+    res.status(500).json({ error: 'Timeline analysis failed: ' + err.message });
+  }
+});
+
 // Serve Frontend in Production
 app.use(express.static(path.join(__dirname, '../dist')));
 app.get(/^.*$/, (req, res) => {
