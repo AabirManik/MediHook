@@ -24,10 +24,14 @@ export function renderScanner(navigate) {
         <div class="scan-corner br"></div>
         <!-- Laser scan line -->
         <div class="scan-laser"></div>
-        <!-- Center placeholder content -->
-        <div class="scanner-viewfinder-inner">
-          <span class="material-symbols-outlined" style="font-size:3rem; color:rgba(255,255,255,0.3); font-variation-settings:'FILL' 1;">receipt_long</span>
-          <p style="color:rgba(255,255,255,0.5); font-size:0.85rem; margin-top:8px; text-align:center;">Camera preview appears here</p>
+        <!-- Live Camera Feed -->
+        <video id="live-camera-feed" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 0; display: none;"></video>
+        <canvas id="live-camera-canvas" style="display: none;"></canvas>
+        
+        <!-- Center placeholder content (shown before camera starts) -->
+        <div class="scanner-viewfinder-inner" id="camera-placeholder" style="cursor:pointer;" onclick="window.startLiveCamera()">
+          <span class="material-symbols-outlined" style="font-size:3rem; color:rgba(255,255,255,0.7); font-variation-settings:'FILL' 1;">videocam</span>
+          <p style="color:rgba(255,255,255,0.9); font-size:0.9rem; margin-top:8px; text-align:center; font-weight: 600;">Tap to start live camera</p>
         </div>
       </div>
       <p class="scanner-hint-text">
@@ -38,19 +42,8 @@ export function renderScanner(navigate) {
 
     <!-- Action Buttons -->
     <div class="scanner-actions">
-      <input type="file" id="camera-capture-input" accept="image/*" capture="environment" style="display:none;" onchange="
-        if (this.files && this.files[0]) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            window.showToast('Prescription Captured! Analyzing...');
-            sessionStorage.setItem('scanImage', e.target.result.split(',')[1]);
-            sessionStorage.removeItem('scanText');
-            setTimeout(() => window.navigate('clearscript'), 800);
-          };
-          reader.readAsDataURL(this.files[0]);
-        }
-      ">
-      <button class="btn-primary scanner-btn-primary" id="scanner-capture" onclick="document.getElementById('camera-capture-input').click()">
+      <!-- Hidden file input for native fallback if needed, but primary is live capture now -->
+      <button class="btn-primary scanner-btn-primary" id="scanner-capture" onclick="window.captureLiveCamera()">
         <span class="material-symbols-outlined">camera</span>
         ${t('captureBtn')}
       </button>

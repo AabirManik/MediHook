@@ -45,11 +45,16 @@ const pages = {
 
 // Initial States
 window.__isLoggedIn = false;
-window.__currentUserRole = 'patient'; // Default guest experience
+window.__currentUserRole = 'patient';
 let currentPage = 'home';
 window.navigate = navigate;
 
 function navigate(page) {
+  // Stop camera if navigating away
+  if (window.stopLiveCamera) {
+    window.stopLiveCamera();
+  }
+
   currentPage = page;
   const main = document.getElementById('main-content');
   const renderer = pages[page];
@@ -548,3 +553,77 @@ auth.onAuthStateChange(async (event, session) => {
   }
   isInitialLoad = false;
 });
+
+function handleRouting() {
+  const hash = window.location.hash.slice(1) || 'home';
+  if (pages[hash] && window.__isLoggedIn) {
+    navigate(hash);
+  } else if (!window.__isLoggedIn && hash !== 'landing') {
+    navigate('landing');
+  } else if (!window.__isLoggedIn && hash === 'landing') {
+    navigate('landing');
+  }
+}
+window.addEventListener('hashchange', handleRouting);
+
+// ---- Scanner Live Camera Functions ----
+window.startLiveCamera = async function() {
+  const video = document.getElementById('live-camera-feed');
+  const placeholder = document.getElementById('camera-placeholder');
+  
+  if (!video || !placeholder) return;
+  
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ 
+      video: { facingMode: 'environment' } 
+    });
+    window.__currentCameraStream = stream; // Save to global for cleanup
+    video.srcObject = stream;
+    video.style.display = 'block';
+    placeholder.style.display = 'none';
+  } catch (err) {
+    console.error("Camera access denied or unavailable", err);
+    window.showToast("Camera access is needed for live scanning.", true);
+  }
+};
+
+window.captureLiveCamera = function() {
+  const video = document.getElementById('live-camera-feed');
+  const canvas = document.getElementById('live-camera-canvas');
+  
+  // If camera is not active, fallback to showing a toast or auto-starting
+  if (!window.__currentCameraStream || video.style.display === 'none') {
+     window.showToast("Please tap the viewfinder to start the camera first.");
+     return;
+  }
+  
+  // Set canvas to match video dimensions
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  
+  // Get base64 (jpeg)
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+  const base64Data = dataUrl.split(',')[1];
+  
+  window.showToast('Prescription Captured! Analyzing...');
+  sessionStorage.setItem('scanImage', base64Data);
+  sessionStorage.removeItem('scanText');
+  
+  // Stop the camera before navigating
+  window.stopLiveCamera();
+  
+  setTimeout(() => window.navigate('clearscript'), 800);
+};
+
+window.stopLiveCamera = function() {
+  if (window.__currentCameraStream) {
+    window.__currentCameraStream.getTracks().forEach(track => track.stop());
+    window.__currentCameraStream = null;
+  }
+};
+
+// ==========================================
+// MOCK DATA GENERATION
+// ==========================================
