@@ -544,6 +544,98 @@ export function renderLanding(navigate) {
         <p style="margin-top:var(--space-2); opacity:0.7;">&copy; 2026 Sanjeev AI. All rights reserved.</p>
       </div>
     </footer>
+
+    <style>
+      /* Apply the image to the full page container so it spans edge-to-edge behind transparent sections */
+      .landing-page-container {
+        background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)), url('/landing-bg.jpg');
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        min-height: 100vh;
+      }
+      
+      /* Make specific text inside the hero white, without breaking buttons or the trust badge */
+      .landing-hero .landing-headline,
+      .landing-hero .landing-subheadline,
+      .landing-hero .landing-eyebrow {
+        color: #ffffff !important;
+      }
+      
+      /* Glassmorphism Navbar */
+      .landing-nav, .landing-nav.scrolled {
+        background: rgba(255, 255, 255, 0.1) !important;
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+      }
+      
+      .landing-nav-inner {
+        background: transparent !important;
+        background-color: transparent !important;
+      }
+      
+      /* Navbar text white for contrast */
+      .landing-brand .brand-name, 
+      .landing-nav-links a,
+      .landing-brand .brand-icon {
+        color: #ffffff !important;
+      }
+      
+      /* Make specific text white ONLY in sections that sit directly on the background */
+      #how-it-works .landing-section-header h2,
+      #how-it-works .landing-section-header p,
+      #features .landing-section-header h2,
+      #features .landing-section-header p,
+      .landing-pillars-section .landing-section-header h2,
+      .landing-pillars-section .landing-section-header p,
+      .landing-faq .landing-section-header h2,
+      #for-you .landing-section-header h2,
+      .feature-text,
+      .feature-text h3,
+      .feature-text p,
+      .feature-text .label-caps,
+      .feature-text li,
+      .feature-text strong {
+        color: #ffffff !important;
+      }
+      
+      /* Preserve the specific colors of the checkmark/warning icons in the feature list */
+      .feature-list .material-symbols-outlined[style*="color:#2E7D32"] { color: #81c784 !important; }
+      .feature-list .material-symbols-outlined[style*="color:#E65100"] { color: #ffb74d !important; }
+      .feature-list .material-symbols-outlined[style*="color:#C62828"] { color: #e57373 !important; }
+      
+      /* Style the network nodes in the hero for the dark background */
+      .landing-hero-visual .network-node, 
+      .landing-hero-visual .unified-profile {
+        background: rgba(255, 255, 255, 0.15) !important;
+        backdrop-filter: blur(10px);
+        color: #ffffff !important;
+        border-color: rgba(255, 255, 255, 0.3) !important;
+      }
+      
+      .landing-hero-visual .network-node .material-symbols-outlined,
+      .landing-hero-visual .unified-profile .material-symbols-outlined {
+        color: #ffffff !important;
+      }
+      
+      /* Fix the final CTA section to look like a floating card instead of a full-width block */
+      .landing-final-cta {
+        background: transparent !important;
+        background-color: transparent !important;
+        padding: var(--space-12) var(--space-4) !important;
+      }
+      
+      .final-cta-content {
+        background-color: var(--surface-container) !important;
+        border-radius: var(--radius-2xl) !important;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: var(--space-10) var(--space-6) !important;
+        box-shadow: var(--shadow-elevated) !important;
+      }
+    </style>
   </div>
   `;
 }
