@@ -207,69 +207,50 @@ app.post('/api/users/:id/moods', async (req, res) => {
   }
 });
 
-// CLEARSCRIPT AI SCANNER (Powered by new Python Pipeline)
+// CLEARSCRIPT AI SCANNER (Powered by Gemini Vision)
 app.post('/api/scan-prescription', async (req, res) => {
   try {
     const { rawText, image } = req.body;
     
-    // We expect the new Python service URL from env, default to local if not set
-    const aiServiceUrl = process.env.AI_SERVICE_URL || 'http://localhost:8000';
-    
-    // If no image is provided, we can't run OCR.
-    if (!image) {
-       return res.status(400).json({ error: "Image is required for PaddleOCR pipeline." });
+    if (!image && !rawText) {
+       return res.status(400).json({ error: "Image or text is required." });
     }
 
-    // Convert the base64 string from frontend back to a Blob/Buffer
-    const imageBuffer = Buffer.from(image, 'base64');
-    
-    // Create FormData for the FastAPI endpoint
-    const formData = new FormData();
-    formData.append('image', new Blob([imageBuffer], { type: 'image/jpeg' }), 'prescription.jpg');
-
-    // Send to the Python Microservice
-    const response = await fetch(`${aiServiceUrl}/api/prescriptions/scan`, {
-      method: 'POST',
-      body: formData
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-1.5-flash",
+      generationConfig: { responseMimeType: "application/json" }
     });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`AI Service Error: ${response.status} ${errText}`);
-    }
+    const prompt = `You are a medical OCR and data extraction AI. Extract prescription details from the provided image or text.
+    Return ONLY a valid JSON object with these exact keys:
+    {
+      "medication": "Name of the primary medication (String)",
+      "dosage": "Dosage amount (String, e.g. 500mg)",
+      "instructions": "Frequency and instructions (String, e.g. Twice a day after meals)",
+      "confidence": "Number from 0 to 100 representing how confident you are in the reading",
+      "doctorName": "Name of the prescribing doctor (String, if found, else 'Unknown')"
+    }`;
 
-    const aiData = await response.json();
-    
-    // The Python API returns an array of medications. The frontend clearscript.js
-    // currently expects a single flat object. Let's map the strongest confidence
-    // medication to the old frontend format for seamless backward compatibility!
-    
-    let bestMed = {
-      medication: "Unknown (No Meds Found)",
-      dosage: "",
-      instructions: "",
-      confidence: 0,
-      doctorName: "Extracted via OCR"
-    };
-
-    if (aiData.medications && aiData.medications.length > 0) {
-      // Sort by highest overall confidence
-      aiData.medications.sort((a, b) => b.overall_confidence - a.overall_confidence);
-      const top = aiData.medications[0];
-      
-      bestMed = {
-        medication: top.candidate_name,
-        dosage: top.dosage || "",
-        instructions: (top.frequency || "") + " " + (top.instructions || ""),
-        confidence: Math.round(top.overall_confidence),
-        doctorName: "PaddleOCR Pipeline"
+    let result;
+    if (image) {
+      const imagePart = {
+        inlineData: {
+          data: image,
+          mimeType: "image/jpeg"
+        }
       };
+      result = await model.generateContent([prompt, imagePart]);
+    } else {
+      result = await model.generateContent([prompt, "Text: " + rawText]);
     }
 
-    res.json(bestMed);
+    const responseText = result.response.text();
+    const data = JSON.parse(responseText);
+    
+    res.json(data);
 
   } catch (err) {
-    console.error("Scanner Proxy Error:", err);
+    console.error("Scanner Gemini Error:", err);
     res.status(500).json({ error: 'AI Pipeline Error: ' + err.message });
   }
 });
@@ -282,19 +263,20 @@ app.post('/api/check-interactions', async (req, res) => {
       return res.json({ hasInteraction: false });
     }
 
-    const model = genAI.getGenerativeModel({ model: "models/gemini-flash-latest" });
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-1.5-flash",
+      generationConfig: { responseMimeType: "application/json" }
+    });
     
     const prompt = `You are an expert clinical pharmacologist AI. Analyze the following list of medications for potential interactions and "prescription cascades".
     Medications: ${medications.join(', ')}
-    Return ONLY a valid JSON object:
-    { "hasInteraction": true, "cascade": true, "severity": "High", "message": "explanation" }
-    If none, { "hasInteraction": false }`;
+    Return ONLY a valid JSON object with this exact structure:
+    { "hasInteraction": boolean, "cascade": boolean, "severity": "High" | "Moderate" | "Low" | "None", "message": "Clear explanation of the interaction" }
+    If there are absolutely no known interactions, set hasInteraction to false.`;
     
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("AI did not return valid JSON: " + responseText);
-    res.json(JSON.parse(jsonMatch[0]));
+    res.json(JSON.parse(responseText));
   } catch (err) {
     res.status(500).json({ error: 'Gemini AI Error: ' + err.message });
   }
@@ -304,11 +286,18 @@ app.post('/api/check-interactions', async (req, res) => {
 app.post('/api/analyze-symptoms', async (req, res) => {
   try {
     const { symptoms, userId } = req.body;
-    const meds = await Prescription.find({ userId });
-    const medList = meds.length > 0 ? meds.map(m => m.medication).join(', ') : "None";
+    let medList = "None";
     
-    const model = genAI.getGenerativeModel({ model: "models/gemini-flash-latest" });
-    const prompt = `Patient Symptoms: "${symptoms}". Medications: ${medList}. Check for correlations. Max 3 sentences.`;
+    if (userId) {
+       const meds = await Prescription.find({ userId });
+       medList = meds.length > 0 ? meds.map(m => m.medication).join(', ') : "None";
+    }
+    
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const prompt = `You are a clinical AI assistant.
+Patient Symptoms: "${symptoms}". 
+Current Active Medications: ${medList}. 
+Check for any correlations between the symptoms and side effects of the medications. Be helpful but remind the user to consult a doctor. Keep it under 3 concise sentences.`;
     
     const result = await model.generateContent(prompt);
     res.json({ analysis: result.response.text() });
