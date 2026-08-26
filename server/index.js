@@ -207,38 +207,70 @@ app.post('/api/users/:id/moods', async (req, res) => {
   }
 });
 
-// CLEARSCRIPT AI SCANNER (Powered by Gemini)
+// CLEARSCRIPT AI SCANNER (Powered by new Python Pipeline)
 app.post('/api/scan-prescription', async (req, res) => {
   try {
     const { rawText, image } = req.body;
-    const model = genAI.getGenerativeModel({ model: "models/gemini-flash-latest" });
     
-    const prompt = `You are an expert AI prescription scanner. Analyze the provided text or handwriting of a doctor's prescription. 
-    Extract the medication name, dosage, instructions, and doctor's name if possible. 
-    Return ONLY a valid JSON object with exactly these keys:
-    { "confidence": (integer 0-100), "doctorName": "string", "medication": "string", "dosage": "string", "instructions": "string" }
+    // We expect the new Python service URL from env, default to local if not set
+    const aiServiceUrl = process.env.AI_SERVICE_URL || 'http://localhost:8000';
     
-    Raw text provided: ${rawText || "Check provided image"}`;
-    
-    const parts = [{ text: prompt }];
-    if (image) {
-      parts.push({
-        inlineData: {
-          data: image,
-          mimeType: "image/jpeg"
-        }
-      });
+    // If no image is provided, we can't run OCR.
+    if (!image) {
+       return res.status(400).json({ error: "Image is required for PaddleOCR pipeline." });
     }
+
+    // Convert the base64 string from frontend back to a Blob/Buffer
+    const imageBuffer = Buffer.from(image, 'base64');
     
-    const result = await model.generateContent(parts);
-    const responseText = result.response.text();
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("AI did not return valid JSON: " + responseText);
-    const parsedData = JSON.parse(jsonMatch[0]);
+    // Create FormData for the FastAPI endpoint
+    const formData = new FormData();
+    formData.append('image', new Blob([imageBuffer], { type: 'image/jpeg' }), 'prescription.jpg');
+
+    // Send to the Python Microservice
+    const response = await fetch(`${aiServiceUrl}/api/prescriptions/scan`, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`AI Service Error: ${response.status} ${errText}`);
+    }
+
+    const aiData = await response.json();
     
-    res.json(parsedData);
+    // The Python API returns an array of medications. The frontend clearscript.js
+    // currently expects a single flat object. Let's map the strongest confidence
+    // medication to the old frontend format for seamless backward compatibility!
+    
+    let bestMed = {
+      medication: "Unknown (No Meds Found)",
+      dosage: "",
+      instructions: "",
+      confidence: 0,
+      doctorName: "Extracted via OCR"
+    };
+
+    if (aiData.medications && aiData.medications.length > 0) {
+      // Sort by highest overall confidence
+      aiData.medications.sort((a, b) => b.overall_confidence - a.overall_confidence);
+      const top = aiData.medications[0];
+      
+      bestMed = {
+        medication: top.candidate_name,
+        dosage: top.dosage || "",
+        instructions: (top.frequency || "") + " " + (top.instructions || ""),
+        confidence: Math.round(top.overall_confidence),
+        doctorName: "PaddleOCR Pipeline"
+      };
+    }
+
+    res.json(bestMed);
+
   } catch (err) {
-    res.status(500).json({ error: 'Gemini AI Error: ' + err.message });
+    console.error("Scanner Proxy Error:", err);
+    res.status(500).json({ error: 'AI Pipeline Error: ' + err.message });
   }
 });
 

@@ -44,6 +44,9 @@ export const auth = {
       provider: 'google',
       options: {
         redirectTo: window.location.origin,
+        queryParams: {
+          prompt: 'select_account'
+        }
       }
     });
     if (error) throw error;
@@ -67,9 +70,28 @@ export const auth = {
       .eq('id', userId)
       .single();
       
-    if (error) {
+    if (error && error.code === 'PGRST116') {
+      // Profile doesn't exist (e.g. Google Sign-In). Create it using pending role.
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      
+      const role = localStorage.getItem('pending_role') || 'patient';
+      const newProfile = {
+        id: userId,
+        full_name: user?.user_metadata?.full_name || 'User',
+        email: user?.email,
+        role: role,
+        health_id: 'SANJ-' + Math.floor(1000 + Math.random() * 9000)
+      };
+      const { data: created, error: createError } = await supabase.from('profiles').insert([newProfile]).select().single();
+      if (createError) {
+         console.error("Create profile error:", createError);
+         return null;
+      }
+      return created;
+    } else if (error) {
       console.error("Error fetching profile:", error);
-      return null; // Handle gracefully if profile doesn't exist
+      return null;
     }
     return data;
   },

@@ -81,6 +81,10 @@ export const api = {
     return await db.addPrescription(userId, prescriptionData);
   },
 
+  uploadPrescriptionImage: async (userId, base64Image) => {
+    return await db.uploadPrescriptionImage(userId, base64Image);
+  },
+
   // Mood Logs
   getMoods: async (userId) => {
     return await db.getMoods(userId);

@@ -66,6 +66,29 @@ export const db = {
     return data;
   },
 
+  uploadPrescriptionImage: async (userId, base64Image) => {
+    const fileName = `${userId}/${Date.now()}.jpg`;
+    
+    // Convert base64 to Blob for browser compatibility
+    const byteCharacters = atob(base64Image);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: 'image/jpeg' });
+
+    const { data, error } = await supabase.storage
+      .from('prescriptions')
+      .upload(fileName, blob, { contentType: 'image/jpeg' });
+      
+    if (error) throw error;
+    
+    // Return the public URL
+    const { data: publicUrlData } = supabase.storage.from('prescriptions').getPublicUrl(fileName);
+    return publicUrlData.publicUrl;
+  },
+
   // --- Health Timeline Operations ---
   getTimeline: async (userId) => {
     const { data, error } = await supabase.from('health_timeline').select('*').eq('user_id', userId).order('event_date', { ascending: false });

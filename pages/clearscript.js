@@ -1,5 +1,6 @@
 // ClearScript Validation
 import { api } from '../api.js';
+import { auth } from '../auth.js';
 
 export function renderClearScript(navigate) {
   const t = window.__t;
@@ -85,7 +86,50 @@ export function renderClearScript(navigate) {
         const btnEdit = document.getElementById('btn-edit-scan');
         const btnSaveFallback = document.getElementById('btn-save-fallback');
         
-        if (btnConfirm) btnConfirm.addEventListener('click', () => window.showToast('Confirmation saved!'));
+        if (btnConfirm) {
+          btnConfirm.addEventListener('click', async () => {
+            try {
+              btnConfirm.style.opacity = '0.5';
+              btnConfirm.innerHTML = '<span class="material-symbols-outlined spin">sync</span> Saving...';
+              
+              const user = await auth.getCurrentUser();
+              if (!user) {
+                 window.showToast('You must be logged in to save prescriptions.', true);
+                 return;
+              }
+              
+              // 1. Upload image to Supabase Storage if available
+              let imageUrl = '';
+              if (image) {
+                  imageUrl = await api.uploadPrescriptionImage(user.id, image);
+              }
+              
+              // 2. Save structured data to database
+              await api.addPrescription(user.id, {
+                 medication_name: data.medication || 'Unknown',
+                 dosage: data.dosage || '',
+                 instructions: data.instructions || '',
+                 confidence: data.confidence || 0,
+                 image_url: imageUrl,
+                 doctor_name: data.doctorName || 'Unknown',
+                 raw_text: data.rawText || ''
+              });
+              
+              window.showToast('Prescription confirmed and saved!');
+              
+              // Simulate navigation back to home/medications
+              setTimeout(() => {
+                document.getElementById('nav-home')?.click();
+              }, 1000);
+              
+            } catch (err) {
+              console.error("Save Error:", err);
+              window.showToast('Error saving: ' + err.message, true);
+              btnConfirm.style.opacity = '1';
+              btnConfirm.innerHTML = '<span class="material-symbols-outlined">check_circle</span> Confirm Details';
+            }
+          });
+        }
         if (btnEdit) btnEdit.addEventListener('click', () => window.showToast('Edit mode activated'));
         if (btnSaveFallback) {
           btnSaveFallback.addEventListener('click', () => {

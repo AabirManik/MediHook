@@ -366,6 +366,9 @@ function bindPageEvents(page) {
     if (googleBtn) {
       googleBtn.addEventListener('click', async () => {
         try {
+          const role = main.querySelector('#role-select')?.value || 'patient';
+          localStorage.setItem('pending_role', role);
+          
           googleBtn.textContent = 'Authenticating...';
           await auth.signInWithGoogle();
         } catch (err) {
@@ -494,6 +497,9 @@ if (savedProfileName && !window.__currentUserName) {
   window.__currentUserName = savedProfileName;
 }
 
+// Tracks if this is the very first time onAuthStateChange is firing
+let isInitialLoad = true;
+
 auth.onAuthStateChange(async (event, session) => {
   if (session?.user) {
     window.__isLoggedIn = true;
@@ -507,23 +513,16 @@ auth.onAuthStateChange(async (event, session) => {
       window.__currentHealthId = profile.health_id || 'SANJ-XXXX';
     }
     
-    if (currentPage === 'landing' || (currentPage === 'profile' && event === 'SIGNED_IN')) {
+    if (isInitialLoad || currentPage === 'landing' || (currentPage === 'profile' && event === 'SIGNED_IN')) {
       navigate(window.__currentUserRole === 'caregiver' ? 'caregiver' : 'home');
     }
   } else {
     window.__isLoggedIn = false;
     window.__currentUserId = null;
     
-    if (currentPage !== 'landing') {
+    if (isInitialLoad || currentPage !== 'landing') {
       navigate('landing');
     }
   }
-});
-
-auth.getSession().then(session => {
-  if (!session) {
-    navigate('landing');
-  }
-}).catch(() => {
-  navigate('landing');
+  isInitialLoad = false;
 });
