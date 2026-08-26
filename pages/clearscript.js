@@ -13,6 +13,20 @@ export function renderClearScript(navigate) {
     const rawText = sessionStorage.getItem('scanText');
     const image = sessionStorage.getItem('scanImage');
 
+    // Guard: if no data, redirect back to scanner
+    if (!rawText && !image) {
+      container.innerHTML = `
+        <div style="padding:var(--space-6); text-align:center; color:var(--on-surface-variant);">
+          <span class="material-symbols-outlined" style="font-size:2.5rem;">photo_camera</span>
+          <p style="margin-top:8px; font-weight:600;">No prescription captured.</p>
+          <p style="font-size:0.875rem;">Please go back and capture an image or enter text.</p>
+        </div>
+      `;
+      const confirmBtn = document.getElementById('clearscript-confirm');
+      if (confirmBtn) { confirmBtn.style.display = 'none'; }
+      return;
+    }
+
     try {
       container.innerHTML = `
         <div style="text-align:center; padding:var(--space-8);">

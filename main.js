@@ -189,11 +189,12 @@ function bindPageEvents(page) {
 
   // Scanner
   if (page === 'scanner') {
-    main.querySelector('#scanner-capture')?.addEventListener('click', () => {
-      const text = main.querySelector('#scanner-input')?.value || "Rx Metformin 500mg, twice a day, Dr. Roberts";
-      sessionStorage.setItem('scanText', text);
-      navigate('clearscript');
-    });
+    // Clear any stale scan data from previous sessions
+    sessionStorage.removeItem('scanImage');
+    sessionStorage.removeItem('scanText');
+    // Stop any leftover camera stream from a previous visit
+    window.stopLiveCamera && window.stopLiveCamera();
+    // The capture button is handled by window.captureLiveCamera() defined below
   }
 
   // ClearScript
@@ -587,17 +588,22 @@ window.startLiveCamera = async function() {
   }
 };
 
-window.captureLiveCamera = function() {
+window.captureLiveCamera = async function() {
   const video = document.getElementById('live-camera-feed');
   const canvas = document.getElementById('live-camera-canvas');
+  const captureBtn = document.getElementById('scanner-capture');
   
-  // If camera is not active, fallback to showing a toast or auto-starting
+  // Step 1: If camera is NOT active, START it first
   if (!window.__currentCameraStream || video.style.display === 'none') {
-     window.showToast("Please tap the viewfinder to start the camera first.");
-     return;
+    await window.startLiveCamera();
+    // Update button to indicate next click will take the photo
+    if (captureBtn) {
+      captureBtn.innerHTML = `<span class="material-symbols-outlined">camera</span> Take Photo`;
+    }
+    return; // Wait for user to frame and click again
   }
   
-  // Set canvas to match video dimensions
+  // Step 2: Camera is live — capture the frame
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   const ctx = canvas.getContext('2d');

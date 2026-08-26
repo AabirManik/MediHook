@@ -217,9 +217,9 @@ app.post('/api/scan-prescription', async (req, res) => {
     }
 
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash",
-      generationConfig: { responseMimeType: "application/json" }
+      model: "gemini-3.6-flash"
     });
+
 
     const prompt = `You are a medical OCR and data extraction AI. Extract prescription details from the provided image or text.
     Return ONLY a valid JSON object with these exact keys:
@@ -244,7 +244,8 @@ app.post('/api/scan-prescription', async (req, res) => {
       result = await model.generateContent([prompt, "Text: " + rawText]);
     }
 
-    const responseText = result.response.text();
+    let responseText = result.response.text();
+    responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     const data = JSON.parse(responseText);
     
     res.json(data);
@@ -264,8 +265,7 @@ app.post('/api/check-interactions', async (req, res) => {
     }
 
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash",
-      generationConfig: { responseMimeType: "application/json" }
+      model: "gemini-3.6-flash"
     });
     
     const prompt = `You are an expert clinical pharmacologist AI. Analyze the following list of medications for potential interactions and "prescription cascades".
@@ -275,7 +275,8 @@ app.post('/api/check-interactions', async (req, res) => {
     If there are absolutely no known interactions, set hasInteraction to false.`;
     
     const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
+    let responseText = result.response.text();
+    responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     res.json(JSON.parse(responseText));
   } catch (err) {
     res.status(500).json({ error: 'Gemini AI Error: ' + err.message });
@@ -288,12 +289,16 @@ app.post('/api/analyze-symptoms', async (req, res) => {
     const { symptoms, userId } = req.body;
     let medList = "None";
     
-    if (userId) {
-       const meds = await Prescription.find({ userId });
-       medList = meds.length > 0 ? meds.map(m => m.medication).join(', ') : "None";
+    if (userId && userId !== "dev-user-001" && userId !== "1") {
+       try {
+         const meds = await Prescription.find({ userId }).maxTimeMS(2000);
+         medList = meds.length > 0 ? meds.map(m => m.medication).join(', ') : "None";
+       } catch (e) {
+         console.warn("Ignoring med fetch error:", e.message);
+       }
     }
     
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
     const prompt = `You are a clinical AI assistant.
 Patient Symptoms: "${symptoms}". 
 Current Active Medications: ${medList}. 

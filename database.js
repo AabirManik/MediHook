@@ -1,14 +1,24 @@
 import { supabase } from './supabase.js';
 
+// Guard: Supabase requires a valid UUID. Mock/dev user IDs like "dev-user-001" will
+// cause a 400 error. This helper lets all DB methods silently skip for non-UUID users.
+const isValidUUID = (id) => {
+  if (!id) return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+};
+
 export const db = {
+
   // --- Profile Operations ---
   getProfile: async (userId) => {
+    if (!isValidUUID(userId)) return null;
     const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
     if (error) throw error;
     return data;
   },
   
   updateProfile: async (userId, updates) => {
+    if (!isValidUUID(userId)) return null;
     const { data, error } = await supabase.from('profiles').update(updates).eq('id', userId).select();
     if (error) throw error;
     return data;
@@ -16,12 +26,14 @@ export const db = {
 
   // --- Medication Operations ---
   getMedications: async (userId) => {
+    if (!isValidUUID(userId)) return [];
     const { data, error } = await supabase.from('medications').select('*').eq('user_id', userId).order('created_at', { ascending: false });
     if (error) throw error;
     return data;
   },
 
   addMedication: async (userId, medication) => {
+    if (!isValidUUID(userId)) return null;
     const { data, error } = await supabase.from('medications').insert([{ ...medication, user_id: userId }]).select();
     if (error) throw error;
     return data;
@@ -29,12 +41,14 @@ export const db = {
 
   // --- Mood Operations ---
   getMoods: async (userId) => {
+    if (!isValidUUID(userId)) return [];
     const { data, error } = await supabase.from('mood_logs').select('*').eq('user_id', userId).order('recorded_at', { ascending: false });
     if (error) throw error;
     return data;
   },
 
   addMood: async (userId, mood) => {
+    if (!isValidUUID(userId)) return null;
     const { data, error } = await supabase.from('mood_logs').insert([{ ...mood, user_id: userId }]).select();
     if (error) throw error;
     return data;
@@ -42,12 +56,14 @@ export const db = {
 
   // --- Contacts Operations ---
   getContacts: async (userId) => {
+    if (!isValidUUID(userId)) return [];
     const { data, error } = await supabase.from('contacts').select('*').eq('user_id', userId).order('created_at', { ascending: false });
     if (error) throw error;
     return data;
   },
 
   addContact: async (userId, contact) => {
+    if (!isValidUUID(userId)) return null;
     const { data, error } = await supabase.from('contacts').insert([{ ...contact, user_id: userId }]).select();
     if (error) throw error;
     return data;
@@ -55,18 +71,21 @@ export const db = {
 
   // --- Prescriptions Operations ---
   getPrescriptions: async (userId) => {
+    if (!isValidUUID(userId)) return [];
     const { data, error } = await supabase.from('prescriptions').select('*').eq('user_id', userId).order('created_at', { ascending: false });
     if (error) throw error;
     return data;
   },
 
   addPrescription: async (userId, prescription) => {
+    if (!isValidUUID(userId)) return null;
     const { data, error } = await supabase.from('prescriptions').insert([{ ...prescription, user_id: userId }]).select();
     if (error) throw error;
     return data;
   },
 
   uploadPrescriptionImage: async (userId, base64Image) => {
+    if (!isValidUUID(userId)) return '';
     const fileName = `${userId}/${Date.now()}.jpg`;
     
     // Convert base64 to Blob for browser compatibility
@@ -91,12 +110,14 @@ export const db = {
 
   // --- Health Timeline Operations ---
   getTimeline: async (userId) => {
+    if (!isValidUUID(userId)) return [];
     const { data, error } = await supabase.from('health_timeline').select('*').eq('user_id', userId).order('event_date', { ascending: false });
     if (error) throw error;
     return data;
   },
   
   addTimelineEvent: async (userId, event) => {
+    if (!isValidUUID(userId)) return null;
     const { data, error } = await supabase.from('health_timeline').insert([{ ...event, user_id: userId }]).select();
     if (error) throw error;
     return data;
