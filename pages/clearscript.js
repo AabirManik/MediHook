@@ -326,12 +326,39 @@ function bindActionButtons(data, image, navigate) {
             image_url: imageUrl,
             doctorName: data.doctorName || 'Unknown',
             raw_text: data.rawText || '',
-            date: new Date().toISOString().split('T')[0]
+            date: new Date().toISOString().split('T')[0],
+            insights: JSON.stringify({
+              overallConfidence: data.overallConfidence || 0,
+              warnings: data.warnings || [],
+              frequency: med.frequency || '',
+              duration: med.duration || ''
+            })
           });
           savedCount++;
         }
         
         window.showToast(`Saved ${savedCount} medication${savedCount !== 1 ? 's' : ''} successfully!`);
+        
+        // Background: recalculate and cache safety score
+        const allMeds = await api.getPrescriptions(user.id);
+        const medNames = allMeds.map(m => m.medication).filter(Boolean);
+        if (medNames.length >= 2) {
+          api.checkInteractions(medNames).then(interaction => {
+            let score = 100;
+            score -= allMeds.length * 3;
+            if (allMeds.length > 5) score -= 5;
+            if (interaction.pairs) {
+              interaction.pairs.forEach(p => {
+                if (p.severity === 'High') score -= 15;
+                else if (p.severity === 'Moderate') score -= 8;
+              });
+            }
+            score = Math.max(0, Math.min(100, score));
+            api.updateSafetyScore(user.id, score).catch(() => {});
+          }).catch(() => {});
+        } else {
+          api.updateSafetyScore(user.id, 100).catch(() => {});
+        }
         
         // Auto-run risk analysis if user has existing meds
         const existingMeds = meds.map(m => m.name).filter(Boolean);

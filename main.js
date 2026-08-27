@@ -12,7 +12,7 @@ import { renderAlert, initAlert, cleanupAlert } from './pages/alert.js';
 import { renderCaregiver, initCaregiver, cleanupCaregiver } from './pages/caregiver.js';
 import { renderSymptoms, initSymptoms, cleanupSymptoms } from './pages/symptoms.js';
 import { renderMedications, initMedications } from './pages/medications.js';
-import { renderReport } from './pages/report.js';
+import { renderReport, initReport } from './pages/report.js';
 import { renderClearScript, cleanupClearScript } from './pages/clearscript.js';
 import { renderDrugInteraction, initDrugInteraction, cleanupDrugInteraction } from './pages/drug-interaction.js';
 import { renderLogin } from './pages/login.js';
@@ -48,6 +48,12 @@ window.__isLoggedIn = false;
 window.__currentUserRole = 'patient';
 let currentPage = 'home';
 window.navigate = navigate;
+
+// Restore dark mode theme on load (before any render)
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'dark') {
+  document.documentElement.dataset.theme = 'dark';
+}
 
 let currentCleanup = null;
 let isNavigating = false;
@@ -219,10 +225,6 @@ function bindPageEvents(page) {
     main.querySelector('#tool-meds')?.addEventListener('click', () => navigate('medications'));
     main.querySelector('#tool-report')?.addEventListener('click', () => navigate('report'));
     main.querySelector('#tool-interaction')?.addEventListener('click', () => navigate('drug-interaction'));
-    main.querySelector('#sos-btn')?.addEventListener('click', () => {
-      if (window.__isLoggedIn) navigate('profile');
-      else alert('Please login to use Emergency SOS features');
-    });
   }
 
   // Scanner
@@ -302,8 +304,7 @@ function bindPageEvents(page) {
   }
 
   if (page === 'report') {
-    main.querySelector('.btn-primary')?.addEventListener('click', () => window.showToast("Report generated and saved!"));
-    main.querySelector('.icon-btn')?.addEventListener('click', () => window.showToast("Downloading secure PDF..."));
+    initReport();
   }
 
   if (page === 'symptoms') {

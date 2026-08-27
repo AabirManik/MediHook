@@ -24,6 +24,20 @@ export const db = {
     return data;
   },
 
+  getSafetyScore: async (userId) => {
+    if (!isValidUUID(userId)) return null;
+    const { data, error } = await supabase.from('profiles').select('safety_score, score_updated_at').eq('id', userId).single();
+    if (error) throw error;
+    return data;
+  },
+
+  updateSafetyScore: async (userId, score) => {
+    if (!isValidUUID(userId)) return null;
+    const { data, error } = await supabase.from('profiles').update({ safety_score: score, score_updated_at: new Date().toISOString() }).eq('id', userId).select('safety_score, score_updated_at');
+    if (error) throw error;
+    return data;
+  },
+
   // --- Medication Operations ---
   getMedications: async (userId) => {
     if (!isValidUUID(userId)) return [];
@@ -229,6 +243,13 @@ export const db = {
     if (error) throw error;
   },
 
+  getPatientPrescriptionsForCaregiver: async (patientId) => {
+    if (!isValidUUID(patientId)) return [];
+    const { data, error } = await supabase.rpc('get_patient_prescriptions_for_caregiver', { p_patient_id: patientId });
+    if (error) throw error;
+    return data || [];
+  },
+
   // ------------------------------------------------------------------
   // SOS SYSTEM
   // ------------------------------------------------------------------
@@ -294,5 +315,51 @@ export const db = {
         callback(payload);
       })
       .subscribe();
+  },
+
+  // ------------------------------------------------------------------
+  // SHARED REPORTS
+  // ------------------------------------------------------------------
+  shareReport: async (patientId, doctorId, reportData) => {
+    if (!isValidUUID(patientId) || !isValidUUID(doctorId)) return null;
+    const { data, error } = await supabase
+      .from('shared_reports')
+      .insert([{
+        patient_id: patientId,
+        doctor_id: doctorId,
+        report_data: reportData,
+        report_type: 'weekly'
+      }])
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  getSharedReports: async (doctorId) => {
+    if (!isValidUUID(doctorId)) return [];
+    const { data, error } = await supabase
+      .from('shared_reports')
+      .select('*')
+      .eq('doctor_id', doctorId)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+
+    if (data.length > 0) {
+      const pids = [...new Set(data.map(d => d.patient_id))];
+      const { data: profs } = await supabase.from('profiles').select('id, full_name, health_id').in('id', pids);
+      const pMap = {};
+      if (profs) profs.forEach(p => pMap[p.id] = p);
+      data.forEach(d => { d.patient = pMap[d.patient_id] || { full_name: 'Unknown Patient', health_id: 'UNKNOWN' }; });
+    }
+    return data;
+  },
+
+  markReportRead: async (reportId) => {
+    const { error } = await supabase
+      .from('shared_reports')
+      .update({ read: true })
+      .eq('id', reportId);
+    if (error) throw error;
   }
 };

@@ -90,6 +90,76 @@
   --shadow-elevated: 0 8px 32px 0 rgba(27, 28, 21, 0.1);
 }
 
+/* ---------- Dark Theme ---------- */
+[data-theme="dark"] {
+  --primary: #a5d4b4;
+  --primary-container: #1b4332;
+  --on-primary: #003822;
+  --on-primary-container: #c1ecd4;
+  --primary-fixed: #c1ecd4;
+  --primary-fixed-dim: #a5d0b9;
+  --on-primary-fixed: #e0f5ea;
+  --on-primary-fixed-variant: #c1ecd4;
+
+  --secondary: #bcc7c1;
+  --secondary-container: #3e4944;
+  --on-secondary: #25312d;
+  --on-secondary-container: #d8e2dc;
+  --secondary-fixed: #dbe5df;
+  --secondary-fixed-dim: #bfc9c3;
+  --on-secondary-fixed: #e5ede8;
+
+  --tertiary: #e9c349;
+  --tertiary-container: #5c4700;
+  --tertiary-fixed: #ffe088;
+  --tertiary-fixed-dim: #e9c349;
+  --on-tertiary: #3e2e00;
+  --on-tertiary-container: #ffe088;
+  --on-tertiary-fixed: #fff3d1;
+
+  --surface: #121220;
+  --surface-bright: #1e1e30;
+  --surface-dim: #0c0c18;
+  --surface-container: #1a1a2e;
+  --surface-container-low: #16213e;
+  --surface-container-high: #1f1f3a;
+  --surface-container-highest: #2a2a45;
+  --surface-container-lowest: #0e0e1c;
+  --surface-variant: #2a2a45;
+  --on-surface: #e6e1e5;
+  --on-surface-variant: #c4c6cf;
+  --surface-tint: #a5d4b4;
+
+  --error: #ffb4ab;
+  --error-container: #93000a;
+  --on-error: #690005;
+  --on-error-container: #ffdad6;
+
+  --outline: #93999f;
+  --outline-variant: #44484e;
+  --inverse-surface: #e6e1e5;
+  --inverse-on-surface: #1a1a2e;
+  --inverse-primary: #012d1d;
+}
+
+[data-theme="dark"] .topbar {
+  background: rgba(18, 18, 32, 0.85);
+}
+[data-theme="dark"] body::before {
+  background-image: none;
+}
+[data-theme="dark"] .card,
+[data-theme="dark"] .brand-glass {
+  background: var(--surface-container);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+[data-theme="dark"] .med-history-card {
+  background: var(--surface-container);
+}
+[data-theme="dark"] .caregiver-card {
+  background: var(--surface-container);
+}
+
 /* ---------- Reset & Base ---------- */
 *, *::before, *::after {
   margin: 0;
@@ -1240,6 +1310,159 @@ body::before {
 
 
 /* ============================
+   PRESCRIPTION HISTORY CARDS
+   ============================ */
+
+.med-history-card {
+  background: var(--surface-container-low);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--space-4);
+  overflow: hidden;
+  border: 1px solid var(--outline-variant);
+  transition: box-shadow 0.2s;
+}
+.med-history-card:hover {
+  box-shadow: var(--shadow-elevated);
+}
+
+.med-history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: var(--space-4) var(--space-4) var(--space-2);
+}
+
+.med-history-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.med-history-name {
+  font-family: var(--font-headline);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.med-history-confidence {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.med-history-date {
+  font-size: 0.75rem;
+  color: var(--on-surface-variant);
+}
+
+.med-history-doctor {
+  font-size: 0.75rem;
+  color: var(--on-surface-variant);
+  background: var(--surface-container-high);
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.med-history-body {
+  padding: 0 var(--space-4) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.med-history-detail {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.85rem;
+  color: var(--on-surface-variant);
+}
+.med-history-detail .material-symbols-outlined {
+  font-size: 1rem;
+  color: var(--outline);
+  flex-shrink: 0;
+}
+
+/* Insights Toggle */
+.med-insight-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface-container);
+  border: none;
+  border-top: 1px solid var(--outline-variant);
+  color: var(--primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+.med-insight-toggle:hover {
+  background: var(--surface-container-high);
+}
+.med-insight-toggle .material-symbols-outlined {
+  font-size: 1.1rem;
+}
+
+/* Insights Section */
+.med-insight-section {
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  background: var(--surface-container-lowest);
+  border-top: 1px solid var(--outline-variant);
+}
+
+.med-insight-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.85rem;
+  color: var(--on-surface);
+}
+.med-insight-row .material-symbols-outlined {
+  font-size: 1.1rem;
+}
+
+.med-insight-badge {
+  display: inline-flex;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.med-warnings {
+  margin-top: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.med-warning-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-size: 0.8rem;
+  color: var(--error);
+  background: var(--error-container);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+}
+.med-warning-item .material-symbols-outlined {
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+
+/* ============================
    MOOD TRACKER
    ============================ */
 .mood-hero {
@@ -1841,6 +2064,273 @@ body::before {
   font-size: 0.7rem;
   color: var(--outline);
 }
+
+
+/* ============================
+   WEEKLY REPORT
+   ============================ */
+
+.report-paper {
+  background: white;
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  box-shadow: var(--shadow-ambient);
+  margin-bottom: var(--space-8);
+  position: relative;
+  overflow: hidden;
+}
+
+.report-paper-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: var(--primary);
+}
+
+.report-paper-header {
+  text-align: center;
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--surface-container-high);
+}
+.report-paper-header h3 {
+  font-family: var(--font-headline);
+  color: var(--primary);
+  font-size: 1.5rem;
+  margin-bottom: var(--space-1);
+}
+.report-paper-header p {
+  font-size: 0.75rem;
+  color: var(--outline);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.report-section {
+  margin-bottom: var(--space-6);
+}
+
+.report-section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.875rem;
+  color: var(--on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-3);
+}
+.report-section-title .material-symbols-outlined {
+  font-size: 1.125rem;
+}
+
+/* Safety Score */
+.report-safety {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+.report-safety-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.report-safety-label {
+  font-size: 0.875rem;
+  color: var(--on-surface-variant);
+}
+
+/* Medication Rows */
+.report-med-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--outline-variant);
+}
+.report-med-row:last-child {
+  border-bottom: none;
+}
+.report-med-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.report-med-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--on-surface);
+}
+.report-med-dosage {
+  font-size: 0.8rem;
+  color: var(--on-surface-variant);
+}
+.report-med-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.report-med-confidence {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.report-med-doctor {
+  font-size: 0.7rem;
+  color: var(--on-surface-variant);
+  background: var(--surface-container);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.report-new-meds {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--tertiary-container);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-3);
+  font-size: 0.85rem;
+  color: var(--on-tertiary-container);
+}
+
+/* Mood Summary */
+.report-mood-summary {
+  display: flex;
+  gap: var(--space-6);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+.report-mood-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+.report-mood-avg {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1;
+}
+.report-mood-avg-label {
+  font-size: 0.7rem;
+  color: var(--on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Mood Chart */
+.report-mood-chart {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 8rem;
+  padding: var(--space-2) 0;
+  gap: var(--space-1);
+}
+.report-mood-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  height: 100%;
+  gap: 4px;
+}
+.report-mood-bar-track {
+  width: 100%;
+  height: 100%;
+  background: var(--surface-container-high);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+.report-mood-bar-fill {
+  width: 100%;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: height 0.5s ease;
+  min-height: 4px;
+}
+.report-mood-day-label {
+  font-size: 0.6rem;
+  color: var(--on-surface-variant);
+  text-transform: uppercase;
+}
+.report-mood-day-value {
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--on-surface);
+}
+
+/* Share Button & No Doctor */
+.report-share-btn {
+  margin-top: var(--space-4);
+}
+.report-no-doctor {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--surface-container-low);
+  border-radius: var(--radius-xl);
+  font-size: 0.875rem;
+  color: var(--on-surface-variant);
+  text-align: center;
+  justify-content: center;
+}
+
+/* Doctor View: Shared Report Cards */
+.doctor-report-card {
+  background: var(--surface-container-low);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--outline-variant);
+  overflow: hidden;
+  cursor: pointer;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.doctor-report-card:hover {
+  box-shadow: var(--shadow-elevated);
+}
+.doctor-report-unread {
+  border-color: var(--error);
+  border-width: 2px;
+}
+
+.doctor-report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--outline-variant);
+  background: var(--surface-container);
+}
+.doctor-report-body {
+  padding: var(--space-4);
+}
+
+.doctor-report-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.doctor-report-stat-value {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1;
+}
+.doctor-report-stat-label {
+  font-size: 0.65rem;
+  color: var(--on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
 
 @media (max-width: 48rem) {
   .alert-metrics-grid { grid-template-columns: repeat(2, 1fr); }
@@ -3056,5 +3546,223 @@ body::before {
     width: 32px; height: 32px; font-size: 1rem;
     box-shadow: 0 0 0 4px var(--surface-bright);
   }
+}
+
+/* ── Caregiver Hub ── */
+.caregiver-card {
+  background: var(--surface);
+  padding: var(--space-4);
+  border-radius: var(--radius-xl);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+  box-shadow: var(--shadow-low);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.caregiver-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-medium);
+}
+.caregiver-card-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
+}
+.caregiver-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: var(--primary-container);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.caregiver-status-chip {
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.caregiver-new-badge {
+  background: var(--error);
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+}
+.caregiver-empty-state {
+  text-align: center;
+  padding: var(--space-6);
+}
+.caregiver-alert-clear {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--surface);
+  border-left: 4px solid var(--primary);
+  border-radius: var(--radius-xl);
+}
+.caregiver-patient-card {
+  cursor: pointer;
+}
+.caregiver-share-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.caregiver-share-btn:hover {
+  background: var(--surface-container-low);
+  border-color: var(--primary);
+}
+.caregiver-share-btn div {
+  flex: 1;
+  min-width: 0;
+}
+.cg-form-input {
+  width: 100%;
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-lg);
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+.cg-form-input:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+.cg-cancel-btn,
+.cg-revoke-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--space-1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.cg-cancel-btn:hover,
+.cg-revoke-btn:hover {
+  background: var(--error-container);
+}
+.hidden { display: none !important; }
+
+/* ── Global Modal ── */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(5px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+}
+.modal-card {
+  background: var(--surface);
+  padding: var(--space-6);
+  border-radius: var(--radius-2xl);
+  width: 100%;
+  max-width: 360px;
+  box-shadow: var(--shadow-elevated);
+}
+.form-input {
+  width: 100%;
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-lg);
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  font-family: inherit;
+}
+.form-input:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+.caregiver-copy-btn {
+  background: none;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  padding: var(--space-1) var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  color: var(--on-surface-variant);
+  transition: background 0.15s, border-color 0.15s;
+}
+.caregiver-copy-btn:hover {
+  background: var(--surface-container-low);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* ── Toggle Switch ── */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 3rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+}
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--surface-container-highest);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: background 0.25s ease;
+}
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 1.25rem;
+  height: 1.25rem;
+  background: var(--outline);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: transform 0.25s ease, background 0.25s ease;
+}
+.toggle-switch input:checked + .toggle-slider {
+  background: var(--primary);
+}
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(1.5rem);
+  background: white;
+}
+.toggle-switch input:focus-visible + .toggle-slider {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 

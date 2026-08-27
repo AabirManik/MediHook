@@ -59,9 +59,9 @@ export function renderProfile(navigate) {
             <span class="material-symbols-outlined" style="color:var(--on-surface-variant);">dark_mode</span>
             <span style="font-weight:600; font-size:0.875rem;">${t('darkMode')}</span>
           </div>
-          <label style="position:relative; display:inline-block; width:3rem; height:1.5rem; background:var(--surface-container-high); border-radius:var(--radius-full); cursor:pointer;">
-            <input type="checkbox" style="opacity:0; width:0; height:0;" />
-            <span style="position:absolute; top:2px; left:2px; width:1.25rem; height:1.25rem; background:var(--outline); border-radius:50%; box-shadow:0 2px 4px rgba(0,0,0,0.2);"></span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="dark-mode-toggle" />
+            <span class="toggle-slider"></span>
           </label>
         </div>
 
@@ -70,8 +70,9 @@ export function renderProfile(navigate) {
             <span class="material-symbols-outlined" style="color:var(--primary);">notifications_active</span>
             <span style="font-weight:600; font-size:0.875rem;">${t('notifications')}</span>
           </div>
-          <label style="position:relative; display:inline-block; width:3rem; height:1.5rem; background:var(--primary); border-radius:var(--radius-full); cursor:pointer;">
-            <span style="position:absolute; top:2px; left:22px; width:1.25rem; height:1.25rem; background:white; border-radius:50%; box-shadow:0 2px 4px rgba(0,0,0,0.2);"></span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="notification-toggle" />
+            <span class="toggle-slider"></span>
           </label>
         </div>
 
@@ -91,67 +92,6 @@ export function renderProfile(navigate) {
       <span class="material-symbols-outlined">logout</span>
       ${t('logout')}
     </button>
-
-    <!-- Invite Caregiver Modal (Hidden by default) -->
-    <div id="caregiver-invite-modal" class="modal-overlay" style="display:none;">
-      <div class="modal-card">
-        <h3 style="margin-bottom:var(--space-4);">Invite Caregiver</h3>
-        <form id="caregiver-invite-form">
-          <input type="text" id="cg-invite-name" placeholder="Caregiver's Name" class="form-input" required />
-          <input type="email" id="cg-invite-email" placeholder="Caregiver's Email" class="form-input" required />
-          <select id="cg-invite-relation" class="form-input" required>
-            <option value="" disabled selected>Relationship</option>
-            <option value="Mother">Mother</option>
-            <option value="Father">Father</option>
-            <option value="Spouse">Spouse</option>
-            <option value="Son">Son</option>
-            <option value="Daughter">Daughter</option>
-            <option value="Friend">Friend</option>
-            <option value="Other">Other</option>
-          </select>
-          <div style="display:flex; gap:var(--space-2); margin-top:var(--space-4);">
-            <button type="button" class="btn-secondary" id="close-cg-modal" style="flex:1; justify-content:center;">Cancel</button>
-            <button type="submit" class="btn-primary" id="cg-submit-btn" style="flex:1; justify-content:center;">Send Invite</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <style>
-      .modal-overlay {
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.7);
-        backdrop-filter: blur(5px);
-        z-index: 2000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: var(--space-4);
-      }
-      .modal-card {
-        background: var(--surface);
-        padding: var(--space-6);
-        border-radius: var(--radius-2xl);
-        width: 100%;
-        max-width: 360px;
-        box-shadow: var(--shadow-elevated);
-      }
-      .form-input {
-        width: 100%;
-        padding: var(--space-3);
-        margin-bottom: var(--space-3);
-        border: 1px solid var(--outline-variant);
-        border-radius: var(--radius-lg);
-        background: var(--surface-container-low);
-        color: var(--on-surface);
-        font-family: inherit;
-      }
-      .form-input:focus {
-        border-color: var(--primary);
-        outline: none;
-      }
-    </style>
   </div>
   `;
 }
@@ -239,29 +179,6 @@ function renderRoleSpecificInfo(role, t, contacts) {
           <button id="save-personal-info-btn" class="btn-primary" style="width:100%; justify-content:center; margin-top:var(--space-3); padding:var(--space-3);">
             <span class="material-symbols-outlined">save</span> Save
           </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Caregiver & SOS Connections -->
-    <section style="margin-bottom:var(--space-8);">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-4);">
-        <h3 class="section-title">Caregiver & SOS</h3>
-        <button class="btn-text" id="add-caregiver-btn" style="color:var(--primary); font-weight:700; font-size:0.875rem;">
-          <span class="material-symbols-outlined" style="font-size:1.125rem;">person_add</span> Invite Caregiver
-        </button>
-      </div>
-      
-      <!-- Pending Invitations -->
-      <div id="pending-invites-list" style="display:grid; gap:var(--space-3); margin-bottom:var(--space-4);">
-        <!-- Injected via JS -->
-      </div>
-      
-      <!-- Active Caregivers -->
-      <div id="active-caregivers-list" style="display:grid; gap:var(--space-3);">
-        <div class="card" style="padding:var(--space-6); text-align:center; border:2px dashed var(--outline-variant); background:transparent;">
-          <span class="material-symbols-outlined" style="font-size:2.5rem; color:var(--outline); margin-bottom:var(--space-2); animation: spin 2s linear infinite;">sync</span>
-          <p style="font-size:0.875rem; color:var(--on-surface-variant);">Loading caregivers...</p>
         </div>
       </div>
     </section>
@@ -460,151 +377,58 @@ export function initProfile(navigate) {
     window.showToast('Personal info saved!');
   });
 
+  // ── Dark Mode Toggle ──
+  const darkToggle = document.getElementById('dark-mode-toggle');
+  if (darkToggle) {
+    darkToggle.checked = localStorage.getItem('theme') === 'dark';
+    darkToggle.addEventListener('change', () => {
+      const isDark = darkToggle.checked;
+      document.documentElement.dataset.theme = isDark ? 'dark' : '';
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      window.showToast(isDark ? 'Dark mode enabled' : 'Light mode enabled');
+    });
+  }
+
+  // ── Notification Toggle ──
+  const notifToggle = document.getElementById('notification-toggle');
+  if (notifToggle) {
+    notifToggle.checked = localStorage.getItem('notifications_enabled') === 'true';
+    notifToggle.addEventListener('change', async () => {
+      if (notifToggle.checked) {
+        if (!('Notification' in window)) {
+          window.showToast('Notifications not supported in this browser', true);
+          notifToggle.checked = false;
+          return;
+        }
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          localStorage.setItem('notifications_enabled', 'true');
+          window.showToast('Notifications enabled!');
+          new Notification('Sanjeev AI', { body: 'You will now receive health alerts and medication reminders.' });
+        } else {
+          notifToggle.checked = false;
+          localStorage.setItem('notifications_enabled', 'false');
+          window.showToast('Notification permission denied. Enable it in browser settings.', true);
+        }
+      } else {
+        localStorage.setItem('notifications_enabled', 'false');
+        window.showToast('Notifications disabled');
+      }
+    });
+  }
+
   // ── Logout ──
   document.getElementById('profile-logout-btn')?.addEventListener('click', async () => {
     try {
       await auth.signOut();
+      window.__currentUserRole = 'patient';
+      window.__currentUserName = '';
+      window.__currentHealthId = '';
+      window.__currentUserId = null;
+      window.__isLoggedIn = false;
       window.showToast('Logged out safely');
     } catch (e) {
       window.showToast('Logout error', true);
     }
   });
-
-  // ── Caregiver Invitation Logic ──
-  const addCaregiverBtn = document.getElementById('add-caregiver-btn');
-  const inviteModal = document.getElementById('caregiver-invite-modal');
-  const closeInviteModal = document.getElementById('close-cg-modal');
-  const inviteForm = document.getElementById('caregiver-invite-form');
-
-  if (addCaregiverBtn && inviteModal) {
-    addCaregiverBtn.addEventListener('click', () => {
-      inviteModal.style.display = 'flex';
-    });
-    
-    closeInviteModal?.addEventListener('click', () => {
-      inviteModal.style.display = 'none';
-    });
-    
-    inviteForm?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById('cg-submit-btn');
-      btn.textContent = 'Sending...';
-      try {
-        const { api } = await import('../api.js');
-        const patientId = window.__currentUserId || localStorage.getItem('userId');
-        const cgName = document.getElementById('cg-invite-name').value.trim();
-        const cgEmail = document.getElementById('cg-invite-email').value.trim();
-        const cgRel = document.getElementById('cg-invite-relation').value;
-        
-        // Save the invitation to Supabase (bypassing the Node backend for now since RLS handles it securely)
-        const token = await api.createCaregiverInvitation(patientId, cgEmail, cgName, cgRel);
-        
-        // Mock sending email by logging the link
-        const inviteLink = `${window.location.origin}/#caregiver-invite?token=${token}&email=${encodeURIComponent(cgEmail)}`;
-        console.log(`[MOCK EMAIL SENT TO ${cgEmail}]: You have been invited to be a caregiver! Click here to accept: ${inviteLink}`);
-        window.showToast(`Invitation sent securely to ${cgEmail}! (Check console for mock email)`);
-        
-        inviteModal.style.display = 'none';
-        inviteForm.reset();
-        loadCaregiverConnections();
-      } catch (err) {
-        window.showToast('Failed to send invite: ' + err.message, true);
-      } finally {
-        btn.textContent = 'Send Invite';
-      }
-    });
-    
-    loadCaregiverConnections();
-  }
-}
-
-async function loadCaregiverConnections() {
-  const patientId = window.__currentUserId || localStorage.getItem('userId');
-  if (!patientId) return;
-  
-  try {
-    const { api } = await import('../api.js');
-    
-    // 1. Load Pending Invites
-    const invites = await api.getPatientInvitations(patientId);
-    const pendingList = document.getElementById('pending-invites-list');
-    if (pendingList) {
-      const pendingInvites = invites.filter(i => i.status === 'PENDING');
-      if (pendingInvites.length === 0) {
-        pendingList.innerHTML = '';
-      } else {
-        pendingList.innerHTML = pendingInvites.map(inv => `
-          <div class="card" style="display:flex; justify-content:space-between; align-items:center; border-left: 4px solid var(--tertiary);">
-            <div>
-              <h4 style="font-weight:700; font-size:0.875rem;">${inv.caregiver_name}</h4>
-              <p style="font-size:0.75rem; color:var(--on-surface-variant);">Pending • Sent to ${inv.caregiver_email}</p>
-            </div>
-            <button class="btn-secondary cancel-invite-btn" data-id="${inv.id}" style="padding:4px 8px; font-size:0.75rem;">Cancel</button>
-          </div>
-        `).join('');
-        
-        document.querySelectorAll('.cancel-invite-btn').forEach(btn => {
-          btn.addEventListener('click', async (e) => {
-            const id = e.target.dataset.id;
-            try {
-              e.target.textContent = 'Canceling...';
-              await api.cancelInvitation(id);
-              window.showToast('Invitation cancelled.');
-              loadCaregiverConnections();
-            } catch (err) {
-              window.showToast('Error cancelling', true);
-            }
-          });
-        });
-      }
-    }
-    
-    // 2. Load Active Caregivers
-    const caregivers = await api.getConnectedCaregivers(patientId);
-    const activeList = document.getElementById('active-caregivers-list');
-    if (activeList) {
-      if (caregivers.length === 0) {
-        activeList.innerHTML = `
-          <div class="card" style="padding:var(--space-6); text-align:center; border:2px dashed var(--outline-variant); background:transparent;">
-            <span class="material-symbols-outlined" style="font-size:2.5rem; color:var(--outline); margin-bottom:var(--space-2);">person_off</span>
-            <p style="font-size:0.875rem; color:var(--on-surface-variant);">No active caregivers connected.</p>
-          </div>
-        `;
-      } else {
-        activeList.innerHTML = caregivers.map(cg => `
-          <div class="card" style="display:flex; justify-content:space-between; align-items:center; border-left: 4px solid var(--primary);">
-            <div style="display:flex; align-items:center; gap:var(--space-3);">
-              <div class="brand-avatar" style="width:2.5rem; height:2.5rem; background:var(--surface-container-high);">
-                <span class="material-symbols-outlined" style="color:var(--primary);">person</span>
-              </div>
-              <div>
-                <h4 style="font-weight:700;">${cg.profiles?.full_name || 'Unknown User'} <span class="chip" style="background:var(--primary-container); color:var(--on-primary-container); font-size:0.6rem; margin-left:4px;">ACTIVE</span></h4>
-                <p style="font-size:0.75rem; color:var(--on-surface-variant);">${cg.relationship}</p>
-              </div>
-            </div>
-            <button class="icon-btn revoke-cg-btn" data-id="${cg.caregiver_id}" style="color:var(--error);" title="Remove Caregiver">
-              <span class="material-symbols-outlined">person_remove</span>
-            </button>
-          </div>
-        `).join('');
-        
-        document.querySelectorAll('.revoke-cg-btn').forEach(btn => {
-          btn.addEventListener('click', async (e) => {
-            const cgId = e.currentTarget.dataset.id;
-            if (confirm('Are you sure you want to remove this caregiver? They will immediately lose access to your data and SOS alerts.')) {
-              try {
-                await api.revokeCaregiver(patientId, cgId);
-                window.showToast('Caregiver removed successfully.');
-                loadCaregiverConnections();
-              } catch (err) {
-                window.showToast('Error removing caregiver', true);
-              }
-            }
-          });
-        });
-      }
-    }
-  } catch (err) {
-    console.error('Failed to load caregiver connections', err);
-  }
 }

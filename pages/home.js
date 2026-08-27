@@ -127,50 +127,122 @@ function renderPatientMode(navigate) {
   `;
 }
 
+function computeNextDose(instructions) {
+  if (!instructions) return null;
+  const lower = instructions.toLowerCase();
+  const now = new Date();
+  const hours = now.getHours();
+
+  let times = [];
+  if (lower.includes('1+0+1') || lower.includes('1-0-1') || lower.includes('twice daily') || lower.includes('two times')) {
+    times = [8, 20];
+  } else if (lower.includes('1+1+1') || lower.includes('1-1-1') || lower.includes('three times') || lower.includes('tid')) {
+    times = [8, 14, 20];
+  } else if (lower.includes('0+0+1') || lower.includes('0-0-1') || lower.includes('once at night') || lower.includes('at bedtime') || lower.includes('hs')) {
+    times = [21];
+  } else if (lower.includes('1+0+0') || lower.includes('1-0-0') || lower.includes('once daily') || lower.includes('morning')) {
+    times = [8];
+  } else if (lower.includes('0+1+0') || lower.includes('0-1-0') || lower.includes('afternoon')) {
+    times = [14];
+  } else {
+    times = [8, 20];
+  }
+
+  for (const t of times) {
+    if (hours < t) return { hour: t, minute: 0, label: t <= 12 ? `${t}:00 AM` : `${t - 12}:00 PM` };
+  }
+  const first = times[0];
+  return { hour: first + 24, minute: 0, label: 'Tomorrow ' + (first <= 12 ? `${first}:00 AM` : `${first - 12}:00 PM`), isTomorrow: true };
+}
+
 export async function initHome() {
   const gaugeValue = document.getElementById('gauge-value');
   const gaugeFill = document.getElementById('gauge-fill');
   const nextDoseDetails = document.getElementById('next-dose-details');
   const takeDoseBtn = document.getElementById('take-dose-btn');
-  
+  const alertDot = document.querySelector('.alert-dot');
+
   if (!gaugeValue) return;
 
   try {
     const { api } = await import('../api.js');
-    const userId = localStorage.getItem('userId');
-    
-    // 1. Fetch Prescriptions (Only if logged in)
-    const meds = (userId && userId !== '1') ? await api.getPrescriptions(userId) : [];
-    
-    // 2. Calculate Safety Score (Live)
-    let score = 100;
-    if (meds.length > 0) {
-      const medNames = meds.map(m => m.medication);
-      const interaction = await api.checkInteractions(medNames);
-      if (interaction.pairs && interaction.pairs.length > 0) score = 65; // High risk
-      else if (meds.length > 3) score = 90; // Polypharmacy caution
-      else score = 98;
+    const userId = window.__currentUserId || localStorage.getItem('userId');
+
+    if (!userId || userId === '1' || userId === 'undefined') {
+      gaugeValue.innerText = '--';
+      return;
     }
 
-    // Update Gauge
     const circumference = 2 * Math.PI * 58;
+
+    const [meds, cachedScore] = await Promise.all([
+      api.getPrescriptions(userId).catch(() => []),
+      api.getSafetyScore(userId).catch(() => null)
+    ]);
+
+    let score = 100;
+    let hasHighInteractions = false;
+    let needsRecalc = false;
+
+    if (cachedScore && cachedScore.safety_score != null && cachedScore.score_updated_at) {
+      score = cachedScore.safety_score;
+    } else if (meds.length >= 2) {
+      needsRecalc = true;
+    }
+
+    if (needsRecalc) {
+      try {
+        const medNames = meds.map(m => m.medication);
+        const interaction = await api.checkInteractions(medNames);
+        score = 100;
+        score -= meds.length * 3;
+        if (meds.length > 5) score -= 5;
+        if (interaction.pairs) {
+          interaction.pairs.forEach(p => {
+            if (p.severity === 'High') { score -= 15; hasHighInteractions = true; }
+            else if (p.severity === 'Moderate') score -= 8;
+          });
+        }
+        score = Math.max(0, Math.min(100, score));
+        api.updateSafetyScore(userId, score).catch(() => {});
+      } catch (e) {
+        console.warn('Interaction check failed:', e);
+      }
+    }
+
+    if (!needsRecalc && meds.length > 0) {
+      const medNames = meds.map(m => m.medication);
+      try {
+        const interaction = await api.checkInteractions(medNames);
+        if (interaction.pairs) {
+          interaction.pairs.forEach(p => {
+            if (p.severity === 'High') hasHighInteractions = true;
+          });
+        }
+      } catch (e) {}
+    }
+
     const offset = circumference * (1 - score / 100);
     gaugeValue.innerText = score;
     gaugeFill.style.strokeDashoffset = offset;
-    if (score < 70) gaugeFill.style.stroke = 'var(--error)';
+    gaugeFill.style.stroke = score < 60 ? 'var(--error)' : score < 85 ? 'var(--tertiary)' : 'var(--primary)';
 
-    // 3. Update Next Dose
+    if (alertDot) {
+      alertDot.style.display = (score < 70 || hasHighInteractions) ? 'block' : 'none';
+    }
+
     if (meds.length > 0) {
       const next = meds[0];
+      const dose = computeNextDose(next.instructions);
       nextDoseDetails.innerHTML = `
         <span class="label-caps">${window.__t('yourNextDose')}</span>
-        <h3 class="next-dose-name">${next.medication} (${next.dosage})</h3>
+        <h3 class="next-dose-name">${next.medication} (${next.dosage || 'N/A'})</h3>
         <div class="next-dose-meta">
           <span class="chip">
-            <span class="material-symbols-outlined" style="font-size:1.125rem">schedule</span> 08:30 AM
+            <span class="material-symbols-outlined" style="font-size:1.125rem">schedule</span> ${dose ? dose.label : 'As prescribed'}
           </span>
           <span class="chip" style="background:var(--secondary-container)">
-            <span class="material-symbols-outlined" style="font-size:1.125rem">water_drop</span> ${next.instructions}
+            <span class="material-symbols-outlined" style="font-size:1.125rem">water_drop</span> ${next.instructions || 'Follow prescription'}
           </span>
         </div>
       `;
@@ -182,35 +254,57 @@ export async function initHome() {
       if (takeDoseBtn) takeDoseBtn.style.display = 'none';
     }
 
-    // 4. Bind SOS Button
+    if (takeDoseBtn) {
+      takeDoseBtn.addEventListener('click', () => {
+        if (meds.length > 0) {
+          const next = meds[0];
+          window.showToast(`${next.medication} marked as taken`);
+          const dose = computeNextDose(next.instructions);
+          if (dose && !dose.isTomorrow) {
+            const remaining = meds.slice(1);
+            if (remaining.length > 0) {
+              const r = remaining[0];
+              const rd = computeNextDose(r.instructions);
+              nextDoseDetails.innerHTML = `
+                <span class="label-caps">${window.__t('yourNextDose')}</span>
+                <h3 class="next-dose-name">${r.medication} (${r.dosage || 'N/A'})</h3>
+                <div class="next-dose-meta">
+                  <span class="chip"><span class="material-symbols-outlined" style="font-size:1.125rem">schedule</span> ${rd ? rd.label : 'As prescribed'}</span>
+                  <span class="chip" style="background:var(--secondary-container)"><span class="material-symbols-outlined" style="font-size:1.125rem">water_drop</span> ${r.instructions || 'Follow prescription'}</span>
+                </div>
+              `;
+            } else {
+              nextDoseDetails.innerHTML = `
+                <h3 class="next-dose-name">All doses taken for today!</h3>
+                <p style="font-size:0.875rem; color:var(--on-surface-variant);">Great job staying on track.</p>
+              `;
+              takeDoseBtn.style.display = 'none';
+            }
+          } else {
+            nextDoseDetails.innerHTML = `
+              <h3 class="next-dose-name">Next dose is tomorrow</h3>
+              <p style="font-size:0.875rem; color:var(--on-surface-variant);">Rest well, you're done for today.</p>
+            `;
+            takeDoseBtn.style.display = 'none';
+          }
+        }
+      });
+    }
+
     const sosBtn = document.getElementById('sos-btn');
     if (sosBtn) {
       sosBtn.addEventListener('click', async () => {
-        if (!userId || userId === '1') {
-          return window.showToast('Please log in to trigger an SOS alert.', true);
-        }
-        
-        // Confirm first to avoid accidental triggers
         if (confirm('TRIGGER EMERGENCY SOS? This will immediately alert all connected caregivers.')) {
           try {
-            sosBtn.textContent = 'TRIGGERING...';
+            sosBtn.innerHTML = '<span class="material-symbols-outlined" style="animation:spin 1s linear infinite;">progress_activity</span> TRIGGERING...';
             sosBtn.style.opacity = '0.5';
-            
             await api.triggerSOS(userId, 'EMERGENCY: Patient triggered SOS from Home screen.');
             window.showToast('SOS Alert Sent to Caregivers!', false);
-            
-            // Revert button
-            sosBtn.innerHTML = `
-              <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">emergency_share</span>
-              SOS ACTIVE
-            `;
+            sosBtn.innerHTML = '<span class="material-symbols-outlined" style="font-variation-settings:\'FILL\' 1;">emergency_share</span> SOS ACTIVE';
             sosBtn.style.opacity = '1';
           } catch (err) {
             window.showToast('Error triggering SOS: ' + err.message, true);
-            sosBtn.innerHTML = `
-              <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">emergency_share</span>
-              EMERGENCY SOS
-            `;
+            sosBtn.innerHTML = '<span class="material-symbols-outlined" style="font-variation-settings:\'FILL\' 1;">emergency_share</span> EMERGENCY SOS';
             sosBtn.style.opacity = '1';
           }
         }

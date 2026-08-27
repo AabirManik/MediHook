@@ -169,3 +169,38 @@ CREATE POLICY "Caregivers can update SOS of assigned patients" ON sos_events FOR
     AND patient_caregivers.status = 'ACTIVE'
   )
 );
+
+
+-- 10. RPC: Caregiver reads prescriptions of connected patients
+CREATE OR REPLACE FUNCTION get_patient_prescriptions_for_caregiver(p_patient_id UUID)
+RETURNS SETOF prescriptions
+LANGUAGE sql
+STABLE
+AS $$
+  SELECT p.*
+  FROM prescriptions p
+  WHERE p.user_id = p_patient_id
+    AND EXISTS (
+      SELECT 1 FROM patient_caregivers pc
+      WHERE pc.patient_id = p_patient_id
+        AND pc.caregiver_id = auth.uid()
+        AND pc.status = 'ACTIVE'
+    );
+$$;
+
+-- 11. RPC: Caregiver reads mood logs of connected patients
+CREATE OR REPLACE FUNCTION get_patient_moods_for_caregiver(p_patient_id UUID)
+RETURNS SETOF mood_logs
+LANGUAGE sql
+STABLE
+AS $$
+  SELECT m.*
+  FROM mood_logs m
+  WHERE m.user_id = p_patient_id
+    AND EXISTS (
+      SELECT 1 FROM patient_caregivers pc
+      WHERE pc.patient_id = p_patient_id
+        AND pc.caregiver_id = auth.uid()
+        AND pc.status = 'ACTIVE'
+    );
+$$;

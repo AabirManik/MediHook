@@ -63,6 +63,14 @@ export const api = {
     return await db.getProfile(userId);
   },
 
+  getSafetyScore: async (userId) => {
+    return await db.getSafetyScore(userId);
+  },
+
+  updateSafetyScore: async (userId, score) => {
+    return await db.updateSafetyScore(userId, score);
+  },
+
   // Emergency & Doctor Contacts
   getContacts: async (userId) => {
     return await db.getContacts(userId);
@@ -193,6 +201,10 @@ export const api = {
   revokeCaregiver: async (patientId, caregiverId) => {
     return await db.revokeCaregiver(patientId, caregiverId);
   },
+
+  getPatientPrescriptionsForCaregiver: async (patientId) => {
+    return await db.getPatientPrescriptionsForCaregiver(patientId);
+  },
   
   triggerSOS: async (patientId, message) => {
     return await db.triggerSOS(patientId, message);
@@ -212,5 +224,17 @@ export const api = {
 
   subscribeToSOS: (callback) => {
     return db.subscribeToSOS(callback);
+  },
+
+  shareReport: async (patientId, doctorId, reportData) => {
+    return await db.shareReport(patientId, doctorId, reportData);
+  },
+
+  getSharedReports: async (doctorId) => {
+    return await db.getSharedReports(doctorId);
+  },
+
+  markReportRead: async (reportId) => {
+    return await db.markReportRead(reportId);
   }
 };
