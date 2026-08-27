@@ -7,9 +7,40 @@ const path = require('path');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { OAuth2Client } = require('google-auth-library');
 const jwt = require('jsonwebtoken');
+const { createClient } = require('@supabase/supabase-js');
 
-// Initialize Gemini and Google Auth
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'AIzaSy_YOUR_API_KEY_HERE');
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL || '',
+  process.env.VITE_SUPABASE_ANON_KEY || ''
+);
+
+// Initialize Gemini API Key Pool (auto-rotates on 429)
+const geminiKeys = [
+  ...(process.env.GEMINI_API_KEYS || '').split(',').map(k => k.trim()).filter(Boolean),
+  ...(process.env.GEMINI_API_KEY ? [process.env.GEMINI_API_KEY] : [])
+];
+const geminiClients = [...new Set(geminiKeys)].map(k => new GoogleGenerativeAI(k));
+let _geminiKeyIdx = 0;
+console.log(`Gemini: ${geminiClients.length} API keys loaded`);
+
+async function generateWithFallback(promptOrParts, modelName = 'gemini-3.6-flash') {
+  const attempts = geminiClients.length;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const client = geminiClients[_geminiKeyIdx % geminiClients.length];
+      _geminiKeyIdx++;
+      const model = client.getGenerativeModel({ model: modelName });
+      const result = await model.generateContent(promptOrParts);
+      return result;
+    } catch (err) {
+      const msg = err.message || '';
+      const isRateLimit = msg.includes('429') || msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED') || msg.includes('rate limit');
+      if (!isRateLimit || i === attempts - 1) throw err;
+      console.warn(`Gemini key exhausted, rotating (${i + 1}/${attempts})...`);
+    }
+  }
+  throw new Error('All Gemini API keys exhausted');
+}
 const GOOGLE_CLIENT_ID_FALLBACK = process.env.GOOGLE_CLIENT_ID || '597980671013-7jlpi4v0cvgdsdeso10mb2av0gbid17h.apps.googleusercontent.com';
 const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID_FALLBACK);
 const JWT_SECRET = process.env.JWT_SECRET || 'sanjeev_super_secret_key_123';
@@ -216,10 +247,6 @@ app.post('/api/scan-prescription', async (req, res) => {
        return res.status(400).json({ error: "Image or text is required." });
     }
 
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-3.6-flash"
-    });
-
     const prompt = `You are a medical OCR and data extraction AI. Extract ALL prescription details from the provided image or text.
 
 IMPORTANT: Extract EVERY medication listed — prescriptions often contain 2-5 drugs. Do NOT stop at the first one.
@@ -257,9 +284,9 @@ Rules:
           mimeType: "image/jpeg"
         }
       };
-      result = await model.generateContent([prompt, imagePart]);
+      result = await generateWithFallback([prompt, imagePart]);
     } else {
-      result = await model.generateContent([prompt, "Text: " + rawText]);
+      result = await generateWithFallback([prompt, "Text: " + rawText]);
     }
 
     let responseText = result.response.text();
@@ -305,10 +332,6 @@ app.post('/api/check-interactions', async (req, res) => {
       return res.json({ pairs: [], drugRisks: {}, summary: 'Need at least 2 medications to check interactions.' });
     }
 
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-3.6-flash"
-    });
-    
     const contextParts = [];
     if (kidneyIssue) contextParts.push('The patient has kidney impairment — consider nephrotoxicity and reduced renal clearance.');
     if (liverIssue) contextParts.push('The patient has liver impairment — consider hepatotoxicity and reduced hepatic metabolism.');
@@ -352,7 +375,7 @@ app.post('/api/check-interactions', async (req, res) => {
     - 1-2 sentences max
     - Mention number of interactions found and overall safety assessment`;
     
-    const result = await model.generateContent(prompt);
+    const result = await generateWithFallback(prompt);
     let responseText = result.response.text();
     responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     res.json(JSON.parse(responseText));
@@ -365,24 +388,66 @@ app.post('/api/check-interactions', async (req, res) => {
 app.post('/api/analyze-symptoms', async (req, res) => {
   try {
     const { symptoms, userId } = req.body;
-    let medList = "None";
-    
+    let medications = [];
+    let recentMoods = [];
+
     if (userId && userId !== "dev-user-001" && userId !== "1") {
-       try {
-         const meds = await Prescription.find({ userId }).maxTimeMS(2000);
-         medList = meds.length > 0 ? meds.map(m => m.medication).join(', ') : "None";
-       } catch (e) {
-         console.warn("Ignoring med fetch error:", e.message);
-       }
+      try {
+        const { data: meds } = await supabase
+          .from('prescriptions')
+          .select('medication, dosage, instructions, confidence')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
+        medications = meds || [];
+      } catch (e) {
+        console.warn("Med fetch error:", e.message);
+      }
+
+      try {
+        const { data: moods } = await supabase
+          .from('mood_logs')
+          .select('moodlevel, notes, date')
+          .eq('user_id', userId)
+          .order('date', { ascending: false })
+          .limit(14);
+        recentMoods = moods || [];
+      } catch (e) {
+        console.warn("Mood fetch error:", e.message);
+      }
     }
-    
-    const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
-    const prompt = `You are a clinical AI assistant.
-Patient Symptoms: "${symptoms}". 
-Current Active Medications: ${medList}. 
-Check for any correlations between the symptoms and side effects of the medications. Be helpful but remind the user to consult a doctor. Keep it under 3 concise sentences.`;
-    
-    const result = await model.generateContent(prompt);
+
+    const medLines = medications.length > 0
+      ? medications.map((m, i) => `${i + 1}. ${m.medication}${m.dosage ? ' (' + m.dosage + ')' : ''}${m.instructions ? ' — ' + m.instructions : ''}`).join('\n')
+      : 'No active medications';
+
+    const moodLines = recentMoods.length > 0
+      ? recentMoods.map(m => `Mood ${m.moodlevel}/5 on ${m.date || 'unknown'}${m.notes ? ' — ' + m.notes : ''}`).join('\n')
+      : 'No recent mood data';
+
+    const prompt = `You are a clinical AI assistant helping a patient understand their symptoms.
+
+PATIENT SYMPTOMS: "${symptoms}"
+
+CURRENT MEDICATIONS (${medications.length}):
+${medLines}
+
+RECENT MOOD HISTORY (last 14 days):
+${moodLines}
+
+TASK:
+1. Identify which symptoms could be side effects of the patient's current medications.
+2. Identify which symptoms could be drug interactions (if multiple meds).
+3. Note any mood pattern that correlates with symptom onset.
+4. Assess urgency: mild (monitor), moderate (schedule doctor visit), or severe (seek immediate care).
+
+RULES:
+- Be specific: name the medication and its known side effects.
+- Do NOT diagnose — only flag possible correlations.
+- Always recommend consulting the patient's doctor.
+- Keep response under 5 concise sentences.
+- If medications are None, provide general symptom guidance only.`;
+
+    const result = await generateWithFallback(prompt);
     res.json({ analysis: result.response.text() });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -393,7 +458,6 @@ Check for any correlations between the symptoms and side effects of the medicati
 app.post('/api/timeline-analysis', async (req, res) => {
   try {
     const { medications, moods, patientContext } = req.body;
-    const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
 
     const medList = (medications || []).map(m => `${m.medication}${m.dosage ? ' (' + m.dosage + ')' : ''}`);
     const moodSummary = (moods || []).map(m => `Level ${m.moodlevel}/5 on ${m.date || 'unknown date'}${m.notes ? ' — ' + m.notes : ''}`);
@@ -442,7 +506,7 @@ Rules:
 - recommendations should be 2-4 specific, actionable items
 - If there's insufficient data, say so in the summary but still provide reasonable estimates`;
 
-    const result = await model.generateContent(prompt);
+    const result = await generateWithFallback(prompt);
     let responseText = result.response.text();
     responseText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     res.json(JSON.parse(responseText));

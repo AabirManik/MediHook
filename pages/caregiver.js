@@ -118,14 +118,24 @@ function renderPatientView(t) {
 function renderCaregiverView(t) {
   return `
   <div class="page-enter">
-    <header style="margin-bottom: var(--space-8);">
-      <div style="display:flex; align-items:center; justify-content:space-between;">
+    <header style="margin-bottom:var(--space-6);">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
         <div>
-          <h2 class="page-title" style="font-size:2rem;">Caregiver Hub</h2>
+          <h2 class="page-title" style="font-size:2rem;">Caregiver Dashboard</h2>
           <p class="page-subtitle">Monitoring your connected patients.</p>
         </div>
       </div>
     </header>
+
+    <!-- SOS Banner -->
+    <div id="cg-sos-banner" style="margin-bottom:var(--space-6);display:none;"></div>
+
+    <!-- Summary Cards -->
+    <div id="cg-summary-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-3);margin-bottom:var(--space-6);">
+      <div class="caregiver-summary-card"><span class="material-symbols-outlined" style="color:var(--primary);">group</span><span class="caregiver-summary-value" id="cg-count-patients">-</span><span class="caregiver-summary-label">Patients</span></div>
+      <div class="caregiver-summary-card"><span class="material-symbols-outlined" style="color:var(--error);">notifications_active</span><span class="caregiver-summary-value" id="cg-count-alerts">-</span><span class="caregiver-summary-label">Alerts</span></div>
+      <div class="caregiver-summary-card"><span class="material-symbols-outlined" style="color:var(--tertiary);">description</span><span class="caregiver-summary-value" id="cg-count-reports">-</span><span class="caregiver-summary-label">Reports</span></div>
+    </div>
 
     <!-- Invitation Acceptance Overlay -->
     <div id="caregiver-invite-overlay" class="modal-overlay" style="display:none; z-index:9999;">
@@ -140,54 +150,49 @@ function renderCaregiverView(t) {
       </div>
     </div>
 
-    <!-- Alert Card -->
-    <div id="caregiver-alert-container" style="margin-bottom: var(--space-8);">
-      <div style="padding:var(--space-6); text-align:center; color:var(--on-surface-variant);">
-        <span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span>
-        <p style="margin-top:var(--space-2); font-size:0.875rem;">Checking medication status...</p>
-      </div>
-    </div>
-
     <!-- Connected Patients -->
-    <section style="margin-bottom: var(--space-8);">
+    <section style="margin-bottom:var(--space-8);">
       <h3 class="section-title" style="margin-bottom:var(--space-4);">
-        <span class="material-symbols-outlined" style="font-size:1.25rem; vertical-align:middle;">group</span>
+        <span class="material-symbols-outlined" style="font-size:1.25rem;vertical-align:middle;">group</span>
         Connected Patients
       </h3>
-      <div id="caregiver-patients-list" style="display:grid; gap:var(--space-3);"></div>
+      <div id="cg-patients-list">
+        <div style="padding:var(--space-6);text-align:center;color:var(--on-surface-variant);">
+          <span class="material-symbols-outlined" style="animation:spin 1s linear infinite;">sync</span>
+          <p style="margin-top:var(--space-2);font-size:0.875rem;">Loading patients...</p>
+        </div>
+      </div>
     </section>
 
-    <!-- Patient Detail View (hidden by default) -->
-    <div id="patient-detail-overlay" class="modal-overlay" style="display:none; z-index:9998;">
-      <div class="modal-card" style="max-width:420px; max-height:80vh; overflow-y:auto;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-4);">
-          <h3 id="detail-patient-name" style="font-weight:700;">Patient</h3>
-          <button id="close-detail-btn" class="icon-btn" style="color:var(--on-surface-variant);">
-            <span class="material-symbols-outlined">close</span>
-          </button>
+    <!-- Shared Reports -->
+    <section style="margin-bottom:var(--space-8);">
+      <h3 class="section-title" style="margin-bottom:var(--space-4);">
+        <span class="material-symbols-outlined" style="font-size:1.25rem;vertical-align:middle;">description</span>
+        Shared Reports
+      </h3>
+      <div id="cg-reports-list">
+        <div style="padding:var(--space-4);text-align:center;color:var(--on-surface-variant);">
+          <span class="material-symbols-outlined" style="animation:spin 1s linear infinite;">sync</span>
+          <p style="margin-top:var(--space-2);font-size:0.875rem;">Loading reports...</p>
         </div>
-        <div id="patient-detail-content">
-          <div style="text-align:center; padding:var(--space-4); color:var(--on-surface-variant);">
-            <span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span>
-            <p style="margin-top:var(--space-2); font-size:0.875rem;">Loading patient data...</p>
+      </div>
+    </section>
+
+    <!-- Patient Detail Overlay -->
+    <div id="cg-patient-overlay" class="modal-overlay" style="display:none;z-index:9998;">
+      <div class="modal-card" style="max-width:520px;max-height:88vh;overflow-y:auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-4);position:sticky;top:0;background:var(--surface);z-index:1;padding-top:var(--space-2);">
+          <h3 id="cg-overlay-name" style="font-weight:700;">Patient</h3>
+          <button id="cg-overlay-close" class="icon-btn" style="color:var(--on-surface-variant);"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div id="cg-overlay-content">
+          <div style="text-align:center;padding:var(--space-4);color:var(--on-surface-variant);">
+            <span class="material-symbols-outlined" style="animation:spin 1s linear infinite;">sync</span>
+            <p style="margin-top:var(--space-2);font-size:0.875rem;">Loading patient data...</p>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Shared Reports -->
-    <section style="margin-top: var(--space-8);">
-      <h3 class="section-title" style="margin-bottom:var(--space-4);">
-        <span class="material-symbols-outlined" style="font-size:1.25rem; vertical-align:middle;">description</span>
-        Shared Reports
-      </h3>
-      <div id="caregiver-shared-reports">
-        <div style="padding:var(--space-4); text-align:center; color:var(--on-surface-variant);">
-          <span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">sync</span>
-          <p style="margin-top:var(--space-2); font-size:0.875rem;">Loading shared reports...</p>
-        </div>
-      </div>
-    </section>
   </div>
   `;
 }
@@ -210,7 +215,7 @@ export async function initCaregiver() {
   }
 }
 
-// â”€â”€ Patient View Logic â”€â”€
+// ── Patient View Logic ──
 async function initPatientView(api, userId, signal) {
   const inviteModal = document.getElementById('caregiver-invite-modal');
   const inviteBtn = document.getElementById('invite-caregiver-btn');
@@ -263,7 +268,6 @@ async function loadPatientCaregivers(api, userId, signal) {
       api.getConnectedCaregivers(userId)
     ]);
 
-    // Pending
     const pending = invites.filter(i => i.status === 'PENDING');
     const pendingSection = document.getElementById('patient-pending-section');
     const pendingList = document.getElementById('patient-pending-list');
@@ -280,7 +284,7 @@ async function loadPatientCaregivers(api, userId, signal) {
               </div>
               <div>
                 <h4 style="font-weight:700; font-size:0.9rem;">${inv.caregiver_name}</h4>
-                <p style="font-size:0.75rem; color:var(--on-surface-variant);">Pending Â· Sent to ${inv.caregiver_email}</p>
+                <p style="font-size:0.75rem; color:var(--on-surface-variant);">Pending · Sent to ${inv.caregiver_email}</p>
               </div>
             </div>
             <div style="display:flex; gap:var(--space-1); align-items:center;">
@@ -322,7 +326,6 @@ async function loadPatientCaregivers(api, userId, signal) {
       }
     }
 
-    // Active
     const activeContainer = document.getElementById('patient-active-caregivers');
     if (activeContainer) {
       if (caregivers.length === 0) {
@@ -471,12 +474,17 @@ async function shareWithCaregivers(api, userId, type, btn, statusEl, signal) {
   }
 }
 
-// â”€â”€ Caregiver View Logic â”€â”€
+// ── Caregiver View Logic ──
 async function initCaregiverView(api, userId, signal) {
-  const alertContainer = document.getElementById('caregiver-alert-container');
-  const patientsList = document.getElementById('caregiver-patients-list');
-
   loadCaregiverDashboard(api, userId, signal);
+
+  document.getElementById('cg-overlay-close')?.addEventListener('click', () => {
+    document.getElementById('cg-patient-overlay').style.display = 'none';
+  }, { signal });
+
+  document.getElementById('cg-patient-overlay')?.addEventListener('click', (e) => {
+    if (e.target.id === 'cg-patient-overlay') e.target.style.display = 'none';
+  }, { signal });
 
   if (!window.__sosSubscription) {
     window.__sosSubscription = api.subscribeToSOS((payload) => {
@@ -493,15 +501,29 @@ async function initCaregiverView(api, userId, signal) {
 }
 
 async function loadCaregiverDashboard(api, userId, signal) {
-  const alertContainer = document.getElementById('caregiver-alert-container');
-  const patientsList = document.getElementById('caregiver-patients-list');
-  if (!alertContainer || !patientsList) return;
+  if (signal.aborted) return;
+
+  const sosBanner = document.getElementById('cg-sos-banner');
+  const patientsList = document.getElementById('cg-patients-list');
+  const reportsList = document.getElementById('cg-reports-list');
+  const countPatients = document.getElementById('cg-count-patients');
+  const countAlerts = document.getElementById('cg-count-alerts');
+  const countReports = document.getElementById('cg-count-reports');
 
   try {
-    // Pending invites
-    const pendingInvites = await api.getCaregiverInvitations();
-    if (pendingInvites.length > 0) {
-      const invite = pendingInvites[0];
+    const [connectedPatients, pendingInvites, sosEvents, reports] = await Promise.all([
+      api.getConnectedPatients(userId),
+      api.getCaregiverInvitations(),
+      api.getActiveSOSEvents(),
+      api.getSharedReports(userId)
+    ]);
+
+    if (signal.aborted) return;
+
+    // Pending invitation overlay
+    const pending = pendingInvites.filter(i => i.status === 'PENDING');
+    if (pending.length > 0) {
+      const invite = pending[0];
       const overlay = document.getElementById('caregiver-invite-overlay');
       const overlayText = document.getElementById('invite-overlay-text');
       if (overlay && overlay.style.display === 'none') {
@@ -528,78 +550,101 @@ async function loadCaregiverDashboard(api, userId, signal) {
       }
     }
 
-    const connectedPatients = await api.getConnectedPatients(userId);
-
-    if (connectedPatients.length === 0) {
-      alertContainer.innerHTML = `
-        <div class="caregiver-empty-state" style="border:1px solid var(--outline-variant); border-radius:var(--radius-xl); padding:var(--space-5);">
-          <span class="material-symbols-outlined" style="font-size:2rem; color:var(--outline); margin-bottom:var(--space-2);">person_off</span>
-          <h3 style="font-weight:700; font-size:1rem;">No Patients Connected</h3>
-          <p style="font-size:0.875rem; color:var(--on-surface-variant);">When a patient invites you, the connection will appear here.</p>
-        </div>`;
-      patientsList.innerHTML = '';
-      return;
-    }
-
-    // SOS check
-    const sosEvents = await api.getActiveSOSEvents();
+    // SOS banner
     const activeSOS = sosEvents.filter(s => s.status === 'ACTIVE');
-
-    if (activeSOS.length > 0) {
-      const sos = activeSOS[0];
-      alertContainer.innerHTML = `
+    if (activeSOS.length > 0 && sosBanner) {
+      sosBanner.style.display = 'block';
+      sosBanner.innerHTML = `
         <div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) var(--space-4);background:var(--error-container);border:1px solid var(--error);border-radius:var(--radius-xl);">
           <span class="material-symbols-outlined" style="color:var(--error);font-size:1.5rem;flex-shrink:0;">emergency</span>
           <div style="flex:1;min-width:0;">
-            <h4 style="font-weight:700;font-size:0.85rem;color:var(--error);margin:0;">SOS Alert</h4>
-            <p style="font-size:0.75rem;color:var(--on-surface-variant);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${sos.profiles?.full_name || "Patient"}: ${sos.message || "No details"}</p>
+            <strong style="color:var(--error);font-size:0.85rem;">${activeSOS.length} Active SOS</strong>
+            <p style="font-size:0.75rem;color:var(--on-surface-variant);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${activeSOS.map(s => s.profiles?.full_name || 'Patient').join(', ')}</p>
           </div>
-          <button class="btn-error ack-sos-btn" data-id="${sos.id}" style="flex-shrink:0;font-size:0.75rem;padding:var(--space-1) var(--space-3);border-radius:var(--radius-lg);">Acknowledge</button>
+          <button class="cg-ack-sos-btn" data-id="${activeSOS[0].id}" style="flex-shrink:0;font-size:0.75rem;padding:var(--space-1) var(--space-3);border-radius:var(--radius-lg);background:var(--error);color:white;border:none;cursor:pointer;font-weight:600;">Acknowledge</button>
         </div>`;
 
-      if (!alertContainer._ackHandlerAttached) {
-        alertContainer.addEventListener('click', async (e) => {
-          const ackBtn = e.target.closest('.ack-sos-btn');
-          if (!ackBtn) return;
-          try {
-            ackBtn.textContent = 'Acknowledging...';
-            await api.acknowledgeSOS(ackBtn.dataset.id);
-            window.showToast("SOS Acknowledged!");
-            loadCaregiverDashboard(api, userId, signal);
-          } catch (err) {
-            window.showToast("Error: " + err.message, true);
-            ackBtn.textContent = 'ACKNOWLEDGE ALERT';
-          }
-        });
-        alertContainer._ackHandlerAttached = true;
-      }
-    } else {
-      const names = connectedPatients.map(p => p.profiles?.full_name).join(', ');
-      alertContainer.innerHTML = `
-        <div class="caregiver-alert-clear">
-          <span class="material-symbols-outlined" style="color:var(--primary); font-size:1.75rem;">verified</span>
-          <div>
-            <h3 style="font-weight:700; color:var(--primary); font-size:1rem;">All Clear</h3>
-            <p style="font-size:0.875rem; color:var(--on-surface-variant);">Monitoring: ${names}. No alerts.</p>
-          </div>
-        </div>`;
+      sosBanner.querySelector('.cg-ack-sos-btn')?.addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        btn.textContent = '...';
+        try {
+          await api.acknowledgeSOS(btn.dataset.id);
+          window.showToast("SOS Acknowledged!");
+          loadCaregiverDashboard(api, userId, signal);
+        } catch (err) {
+          window.showToast("Error: " + err.message, true);
+          btn.textContent = 'Acknowledge';
+        }
+      }, { signal });
+    } else if (sosBanner) {
+      sosBanner.style.display = 'none';
     }
 
-    // Patients list
-    patientsList.innerHTML = connectedPatients.map(p => `
-      <div class="caregiver-card caregiver-patient-card" style="border-left:4px solid var(--primary); cursor:pointer;" data-patient-id="${p.patient_id}" data-patient-name="${p.profiles?.full_name || 'Patient'}">
-        <div class="caregiver-card-left">
-          <div class="caregiver-avatar">
-            <span class="material-symbols-outlined" style="color:var(--primary);">person</span>
+    // Summary cards
+    if (countPatients) countPatients.textContent = connectedPatients.length;
+    if (countAlerts) countAlerts.textContent = activeSOS.length;
+    if (countReports) countReports.textContent = reports.filter(r => !r.read).length;
+
+    // No patients state
+    if (connectedPatients.length === 0) {
+      patientsList.innerHTML = `
+        <div class="caregiver-empty-state" style="border:1px solid var(--outline-variant);border-radius:var(--radius-xl);padding:var(--space-5);">
+          <span class="material-symbols-outlined" style="font-size:2.5rem;color:var(--outline);margin-bottom:var(--space-2);">person_off</span>
+          <h4 style="font-weight:700;">No Patients Connected</h4>
+          <p style="font-size:0.875rem;color:var(--on-surface-variant);">When a patient invites you, they will appear here.</p>
+        </div>`;
+      reportsList.innerHTML = '';
+      return;
+    }
+
+    // Patient cards
+    let patientCardsHtml = '';
+    for (const p of connectedPatients) {
+      const pid = p.patient_id;
+      let pMeds = [], pMoods = [], scoreData = null;
+      try {
+        [pMeds, pMoods, scoreData] = await Promise.all([
+          api.getPatientPrescriptionsForCaregiver(pid).catch(() => []),
+          api.getPatientMoodsForCaregiver(pid).catch(() => []),
+          api.getSafetyScore(pid).catch(() => null)
+        ]);
+      } catch(e) {}
+
+      if (signal.aborted) return;
+
+      const ss = scoreData?.safety_score ?? 100;
+      const ssc = ss >= 85 ? 'var(--primary)' : ss >= 60 ? 'var(--tertiary)' : 'var(--error)';
+      const lastMood = pMoods.length > 0 ? pMoods[0] : null;
+      const moodVal = lastMood ? lastMood.moodlevel : null;
+      const moodColor = moodVal ? (moodVal >= 4 ? 'var(--tertiary)' : moodVal >= 3 ? 'var(--primary)' : 'var(--error)') : 'var(--outline)';
+      const hasAlert = activeSOS.some(a => a.patient_id === pid);
+
+      patientCardsHtml += `
+        <div class="caregiver-card caregiver-patient-card" style="border-left:4px solid ${hasAlert ? 'var(--error)' : 'var(--primary)'};cursor:pointer;" data-patient-id="${pid}" data-patient-name="${p.profiles?.full_name || 'Patient'}">
+          <div class="caregiver-card-left">
+            <div class="caregiver-avatar" style="background:${hasAlert ? 'var(--error-container)' : 'var(--primary-container)'};">
+              <span class="material-symbols-outlined" style="color:${hasAlert ? 'var(--error)' : 'var(--primary)'};">${hasAlert ? 'warning' : 'person'}</span>
+            </div>
+            <div style="min-width:0;">
+              <h4 style="font-weight:700;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.profiles?.full_name || 'Patient'}</h4>
+              <p style="font-size:0.75rem;color:var(--on-surface-variant);">${pMeds.length} med${pMeds.length !== 1 ? 's' : ''} · ${p.relationship}</p>
+            </div>
           </div>
-          <div>
-            <h4 style="font-weight:700; font-size:0.9rem;">${p.profiles?.full_name || 'Patient'}</h4>
-            <p style="font-size:0.75rem; color:var(--on-surface-variant);">${p.relationship}</p>
+          <div style="display:flex;gap:var(--space-4);align-items:center;flex-shrink:0;">
+            <div style="text-align:center;">
+              <span style="font-weight:700;color:${ssc};font-size:0.9rem;">${ss}</span>
+              <p style="font-size:0.6rem;color:var(--on-surface-variant);">Safety</p>
+            </div>
+            <div style="text-align:center;">
+              <span style="font-weight:700;color:${moodColor};font-size:0.9rem;">${moodVal ? moodVal + '/5' : '---'}</span>
+              <p style="font-size:0.6rem;color:var(--on-surface-variant);">Mood</p>
+            </div>
+            <span class="material-symbols-outlined" style="color:var(--outline);font-size:1.25rem;">chevron_right</span>
           </div>
-        </div>
-        <span class="material-symbols-outlined" style="color:var(--outline);">chevron_right</span>
-      </div>
-    `).join('');
+          ${hasAlert ? '<span class="doctor-alert-dot"></span>' : ''}
+        </div>`;
+    }
+    patientsList.innerHTML = `<div style="display:grid;gap:var(--space-3);">${patientCardsHtml}</div>`;
 
     patientsList.querySelectorAll('.caregiver-patient-card').forEach(card => {
       card.addEventListener('click', () => {
@@ -608,120 +653,425 @@ async function loadCaregiverDashboard(api, userId, signal) {
     });
 
     // Shared reports
-    const reportsContainer = document.getElementById('caregiver-shared-reports');
-    if (reportsContainer && !signal.aborted) {
-      try {
-        const reports = await api.getSharedReports(userId);
-        if (reports.length === 0) {
-          reportsContainer.innerHTML = `
-            <div class="caregiver-empty-state" style="border:2px dashed var(--outline-variant); background:transparent; border-radius:var(--radius-xl); padding:var(--space-5);">
-              <p style="font-size:0.875rem; color:var(--on-surface-variant);">No shared reports yet.</p>
-            </div>`;
-        } else {
-          let html = '';
-          reports.forEach(r => {
-            let report = {};
-            try { report = JSON.parse(r.report_data); } catch(e) {}
-            const patientName = r.patient?.full_name || 'Unknown Patient';
-            const dateStr = new Date(r.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-            const isUnread = !r.read;
+    if (reportsList && !signal.aborted) {
+      if (reports.length === 0) {
+        reportsList.innerHTML = `
+          <div class="caregiver-empty-state" style="border:2px dashed var(--outline-variant);background:transparent;border-radius:var(--radius-xl);padding:var(--space-5);">
+            <p style="font-size:0.875rem;color:var(--on-surface-variant);">No shared reports yet.</p>
+          </div>`;
+      } else {
+        let html = '';
+        reports.forEach(r => {
+          let report = {};
+          try { report = JSON.parse(r.report_data); } catch(e) {}
+          const patientName = r.patient?.full_name || 'Unknown Patient';
+          const dateStr = new Date(r.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+          const isUnread = !r.read;
 
-            html += `
-              <div class="caregiver-card doctor-report-card ${isUnread ? 'doctor-report-unread' : ''}" data-report-id="${r.id}" style="border-left:4px solid ${isUnread ? 'var(--error)' : 'var(--outline-variant)'};">
-                <div style="width:100%;">
-                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-2);">
-                    <div style="display:flex; align-items:center; gap:var(--space-2);">
-                      <span class="material-symbols-outlined" style="color:var(--primary); font-size:1.25rem;">person</span>
-                      <strong style="font-size:0.9rem;">${patientName}</strong>
-                      ${isUnread ? '<span class="caregiver-new-badge">NEW</span>' : ''}
-                    </div>
-                    <span style="font-size:0.75rem; color:var(--on-surface-variant);">${dateStr}</span>
+          html += `
+            <div class="caregiver-card cg-report-card" data-report-id="${r.id}" style="border-left:4px solid ${isUnread ? 'var(--error)' : 'var(--outline-variant)'};cursor:pointer;">
+              <div style="width:100%;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+                  <div style="display:flex;align-items:center;gap:var(--space-2);">
+                    <span class="material-symbols-outlined" style="color:var(--primary);font-size:1.25rem;">person</span>
+                    <strong style="font-size:0.9rem;">${patientName}</strong>
+                    ${isUnread ? '<span class="caregiver-new-badge">NEW</span>' : ''}
                   </div>
-                  <div style="display:flex; gap:var(--space-4);">
-                    ${report.safetyScore != null ? `<div style="text-align:center;"><span style="font-weight:700; color:${(report.safetyScore || 100) >= 85 ? 'var(--primary)' : (report.safetyScore || 100) >= 60 ? 'var(--tertiary)' : 'var(--error)'};">${report.safetyScore}</span><br><span style="font-size:0.65rem; color:var(--on-surface-variant);">Safety</span></div>` : ''}
-                    ${report.mood?.average ? `<div style="text-align:center;"><span style="font-weight:700;">${report.mood.average}</span><br><span style="font-size:0.65rem; color:var(--on-surface-variant);">Mood</span></div>` : ''}
-                    ${report.medications ? `<div style="text-align:center;"><span style="font-weight:700;">${report.medications.length}</span><br><span style="font-size:0.65rem; color:var(--on-surface-variant);">Meds</span></div>` : ''}
-                  </div>
+                  <span style="font-size:0.75rem;color:var(--on-surface-variant);">${dateStr}</span>
                 </div>
-              </div>`;
-          });
-          reportsContainer.innerHTML = html;
+                <div style="display:flex;gap:var(--space-4);">
+                  ${report.safetyScore != null ? `<div style="text-align:center;"><span style="font-weight:700;color:${(report.safetyScore || 100) >= 85 ? 'var(--primary)' : (report.safetyScore || 100) >= 60 ? 'var(--tertiary)' : 'var(--error)'};">${report.safetyScore}</span><br><span style="font-size:0.65rem;color:var(--on-surface-variant);">Safety</span></div>` : ''}
+                  ${report.mood?.average ? `<div style="text-align:center;"><span style="font-weight:700;">${report.mood.average}</span><br><span style="font-size:0.65rem;color:var(--on-surface-variant);">Mood</span></div>` : ''}
+                  ${report.medications ? `<div style="text-align:center;"><span style="font-weight:700;">${report.medications.length}</span><br><span style="font-size:0.65rem;color:var(--on-surface-variant);">Meds</span></div>` : ''}
+                </div>
+              </div>
+            </div>`;
+        });
+        reportsList.innerHTML = `<div style="display:grid;gap:var(--space-3);">${html}</div>`;
 
-          reportsContainer.querySelectorAll('.doctor-report-card').forEach(card => {
-            card.addEventListener('click', () => {
-              card.classList.remove('doctor-report-unread');
-              const badge = card.querySelector('.caregiver-new-badge');
-              if (badge) badge.remove();
-              card.style.borderColor = 'var(--outline-variant)';
-              api.markReportRead(card.dataset.reportId).catch(() => {});
-            }, { signal });
-          });
-        }
-      } catch (e) {
-        reportsContainer.innerHTML = '<p style="font-size:0.875rem; color:var(--on-surface-variant);">Could not load shared reports.</p>';
+        reportsList.querySelectorAll('.cg-report-card').forEach(card => {
+          card.addEventListener('click', () => {
+            card.classList.remove('doctor-report-unread');
+            const badge = card.querySelector('.caregiver-new-badge');
+            if (badge) badge.remove();
+            card.style.borderColor = 'var(--outline-variant)';
+            api.markReportRead(card.dataset.reportId).catch(() => {});
+          }, { signal });
+        });
       }
     }
 
   } catch (err) {
     console.error('Caregiver dashboard error:', err);
-    alertContainer.innerHTML = `<div class="caregiver-empty-state" style="color:var(--error);"><p>Error loading data: ${err.message}</p></div>`;
+    if (patientsList) patientsList.innerHTML = `<div style="color:var(--error);text-align:center;padding:var(--space-6);">Error: ${err.message}</div>`;
   }
 }
 
+// ── Patient Detail Overlay ──
 async function openPatientDetail(api, patientId, patientName, signal) {
-  const overlay = document.getElementById('patient-detail-overlay');
-  const nameEl = document.getElementById('detail-patient-name');
-  const content = document.getElementById('patient-detail-content');
+  const overlay = document.getElementById('cg-patient-overlay');
+  const nameEl = document.getElementById('cg-overlay-name');
+  const content = document.getElementById('cg-overlay-content');
   if (!overlay || !content) return;
 
-  nameEl.textContent = patientName;
-  content.innerHTML = '<div style="text-align:center; padding:var(--space-4); color:var(--on-surface-variant);"><span class="material-symbols-outlined" style="animation:spin 1s linear infinite;">sync</span><p style="margin-top:var(--space-2); font-size:0.875rem;">Loading patient data...</p></div>';
+  if (nameEl) nameEl.textContent = patientName;
+  content.innerHTML = '<div style="text-align:center;padding:var(--space-4);color:var(--on-surface-variant);"><span class="material-symbols-outlined" style="animation:spin 1s linear infinite;">sync</span><p style="margin-top:var(--space-2);font-size:0.875rem;">Loading patient data...</p></div>';
   overlay.style.display = 'flex';
 
-  document.getElementById('close-detail-btn').onclick = () => { overlay.style.display = 'none'; };
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.style.display = 'none'; }, { signal });
-
   try {
-    const [prescriptions, moods] = await Promise.all([
-      api.getPatientPrescriptionsForCaregiver(patientId),
-      api.getPatientMoodsForCaregiver(patientId).catch(() => [])
+    const [prescriptions, moods, scoreData] = await Promise.all([
+      api.getPatientPrescriptionsForCaregiver(patientId).catch(() => []),
+      api.getPatientMoodsForCaregiver(patientId).catch(() => []),
+      api.getSafetyScore(patientId).catch(() => null)
     ]);
+
+    if (signal.aborted) return;
+
+    const safetyScore = scoreData?.safety_score ?? 100;
+    const recentMoods = moods.filter(m => {
+      const d = new Date(m.date || m.recorded_at || Date.now());
+      const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
+      return d >= weekAgo;
+    });
+    const avgMood = recentMoods.length > 0
+      ? (recentMoods.reduce((s, m) => s + (m.moodlevel || 3), 0) / recentMoods.length).toFixed(1)
+      : 'N/A';
+    const moodTrend = getMoodTrend(moods);
+    const moodDays = buildMoodChart(moods);
+    const safetyColor = safetyScore >= 85 ? 'var(--primary)' : safetyScore >= 60 ? 'var(--tertiary)' : 'var(--error)';
+
     let html = '';
 
+    // ── Prescriptions ──
+    html += '<div style="margin-bottom:var(--space-5);">';
+    html += '<h4 style="font-weight:700;font-size:0.9rem;margin-bottom:var(--space-3);display:flex;align-items:center;gap:var(--space-2);"><span class="material-symbols-outlined" style="color:var(--primary);font-size:1.1rem;">medication</span> Medications (' + prescriptions.length + ')</h4>';
     if (prescriptions.length > 0) {
-      html += '<h4 style="font-weight:700;font-size:0.85rem;margin-bottom:var(--space-2);">Medications</h4><div style="display:grid; gap:var(--space-3);margin-bottom:var(--space-4);">';
       prescriptions.forEach(p => {
         const conf = p.confidence || 0;
-        let confColor = conf >= 90 ? '#2E7D32' : conf >= 60 ? '#E65100' : '#C62828';
+        const cc = conf >= 90 ? '#2E7D32' : conf >= 60 ? '#E65100' : '#C62828';
         html += `
-          <div class="caregiver-card" style="border-left:3px solid ${confColor};">
+          <div class="caregiver-card" style="border-left:3px solid ${cc};margin-bottom:var(--space-2);">
             <div style="width:100%;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-1);">
-                <h4 style="font-weight:700; font-size:0.9rem;">${p.medication}</h4>
-                <span style="font-size:0.7rem; font-weight:700; color:${confColor};">${conf}%</span>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <h4 style="font-weight:700;font-size:0.85rem;">${p.medication}</h4>
+                <span style="font-size:0.7rem;font-weight:700;color:${cc};">${conf}%</span>
               </div>
-              ${p.dosage ? `<p style="font-size:0.8rem; color:var(--on-surface-variant);">Dosage: ${p.dosage}</p>` : ''}
-              ${p.instructions ? `<p style="font-size:0.8rem; color:var(--on-surface-variant);">Instructions: ${p.instructions}</p>` : ''}
-              ${p.doctorName ? `<p style="font-size:0.75rem; color:var(--outline); margin-top:var(--space-1);">Dr. ${p.doctorName}</p>` : ''}
+              ${p.dosage ? '<p style="font-size:0.75rem;color:var(--on-surface-variant);">Dosage: ' + p.dosage + '</p>' : ''}
+              ${p.instructions ? '<p style="font-size:0.75rem;color:var(--on-surface-variant);">Instructions: ' + p.instructions + '</p>' : ''}
+              ${p.doctorName ? '<p style="font-size:0.7rem;color:var(--outline);margin-top:var(--space-1);">Dr. ' + p.doctorName + '</p>' : ''}
             </div>
           </div>`;
       });
-      html += '</div>';
     } else {
-      html += '<p style="font-size:0.85rem;color:var(--on-surface-variant);margin-bottom:var(--space-3);">No prescriptions on record.</p>';
+      html += '<p style="font-size:0.85rem;color:var(--on-surface-variant);">No prescriptions on record.</p>';
     }
+    html += '</div>';
 
+    // ── Mood Graph ──
+    html += `
+      <div style="margin-bottom:var(--space-5);">
+        <h4 style="font-weight:700;font-size:0.9rem;margin-bottom:var(--space-3);display:flex;align-items:center;gap:var(--space-2);"><span class="material-symbols-outlined" style="color:var(--tertiary);font-size:1.1rem;">mood</span> Mood Trend (7 days)</h4>
+        <div id="cg-detail-mood-graph" style="position:relative;width:100%;height:200px;">
+          <canvas id="cg-detail-mood-canvas"></canvas>
+        </div>
+        <div style="display:flex;justify-content:space-around;margin-top:var(--space-2);">
+          ${moodDays.map(d => '<span style="font-size:0.65rem;color:var(--on-surface-variant);">' + d.label + '</span>').join('')}
+        </div>
+      </div>`;
+
+    // ── Mood Entries ──
+    html += '<div style="margin-bottom:var(--space-5);">';
+    html += '<h4 style="font-weight:700;font-size:0.9rem;margin-bottom:var(--space-3);display:flex;align-items:center;gap:var(--space-2);"><span class="material-symbols-outlined" style="color:var(--tertiary);font-size:1.1rem;">history</span> Mood Entries</h4>';
     if (moods.length > 0) {
-      html += '<h4 style="font-weight:700;font-size:0.85rem;margin-bottom:var(--space-2);">Recent Mood</h4>';
-      moods.slice(0, 5).forEach(m => {
+      moods.slice(0, 14).forEach(m => {
         const moodEmoji = m.moodlevel >= 4 ? '😊' : m.moodlevel >= 3 ? '😐' : '😟';
         const dateStr = new Date(m.recorded_at || m.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-        html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:var(--space-2) 0;border-bottom:1px solid var(--outline-variant);font-size:0.8rem;"><span>' + moodEmoji + ' Mood ' + m.moodlevel + '/5</span><span style="color:var(--on-surface-variant);">' + dateStr + '</span></div>';
+        html += `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--space-2) 0;border-bottom:1px solid var(--outline-variant);font-size:0.8rem;">
+            <span>${moodEmoji} Mood ${m.moodlevel}/5</span>
+            <span style="color:var(--on-surface-variant);">${dateStr}</span>
+          </div>`;
       });
+    } else {
+      html += '<p style="font-size:0.85rem;color:var(--on-surface-variant);">No mood entries yet.</p>';
     }
+    html += '</div>';
 
-    content.innerHTML = html || '<p style="font-size:0.85rem;color:var(--on-surface-variant);text-align:center;padding:var(--space-4);">No data available.</p>';
+    // ── Weekly Report (live) ──
+    html += `
+      <div class="cg-report-paper" style="margin-bottom:var(--space-2);">
+        <div class="cg-report-bar"></div>
+        <div class="cg-report-body">
+          <div class="cg-report-section">
+            <h4 class="cg-report-section-title"><span class="material-symbols-outlined" style="color:${safetyColor};">shield_with_heart</span> Safety Score</h4>
+            <div class="cg-report-safety">
+              <span class="cg-report-safety-value" style="color:${safetyColor};">${safetyScore}</span>
+              <span style="font-size:0.8rem;color:var(--on-surface-variant);">out of 100</span>
+            </div>
+          </div>
+          <div class="cg-report-section">
+            <h4 class="cg-report-section-title"><span class="material-symbols-outlined" style="color:var(--primary);">medication</span> Active Medications (${prescriptions.length})</h4>
+            ${prescriptions.length > 0 ? prescriptions.map(p => {
+              const conf = p.confidence || 0;
+              const cc = conf >= 90 ? '#2E7D32' : conf >= 60 ? '#E65100' : '#C62828';
+              return '<div class="cg-report-med-row"><div><strong>' + p.medication + '</strong> <span style="color:var(--on-surface-variant);font-size:0.75rem;">' + (p.dosage || '') + '</span></div><span style="font-weight:700;font-size:0.75rem;color:' + cc + ';">' + conf + '%</span></div>';
+            }).join('') : '<p style="font-size:0.85rem;color:var(--on-surface-variant);">None</p>'}
+          </div>
+          <div class="cg-report-section">
+            <h4 class="cg-report-section-title"><span class="material-symbols-outlined" style="color:var(--tertiary);">mood</span> Mood & Wellbeing</h4>
+            <div style="display:flex;gap:var(--space-4);margin-bottom:var(--space-3);">
+              <div style="text-align:center;"><span style="font-weight:700;font-size:1.25rem;">${avgMood}</span><p style="font-size:0.65rem;color:var(--on-surface-variant);">Avg Mood (7d)</p></div>
+              <div style="text-align:center;"><span class="material-symbols-outlined" style="color:${moodTrend.color};font-size:1.25rem;">${moodTrend.icon}</span><p style="font-size:0.65rem;color:var(--on-surface-variant);">${moodTrend.text}</p></div>
+              <div style="text-align:center;"><span style="font-weight:700;font-size:1.25rem;">${recentMoods.length}</span><p style="font-size:0.65rem;color:var(--on-surface-variant);">Entries</p></div>
+            </div>
+            <div class="cg-report-mood-bars">
+              ${moodDays.map(d => {
+                const h = d.avg > 0 ? (d.avg / 5) * 60 : 3;
+                const c = d.avg >= 4 ? 'var(--tertiary)' : d.avg >= 3 ? 'var(--primary)' : d.avg > 0 ? 'var(--error)' : 'var(--outline-variant)';
+                return '<div class="cg-report-mood-bar"><div class="cg-report-mood-bar-track"><div class="cg-report-mood-bar-fill" style="height:' + h + 'px;background:' + c + ';"></div></div><span class="cg-report-mood-bar-label">' + d.label + '</span></div>';
+              }).join('')}
+            </div>
+          </div>
+        </div>
+      </div>`;
+
+    content.innerHTML = html;
+
+    // Draw mood graph on canvas after modal layout is computed
+    setTimeout(() => {
+      drawMoodGraph(moods, 'cg-detail-mood-canvas', 'cg-detail-mood-graph');
+    }, 300);
+
   } catch (err) {
-    content.innerHTML = `<p style="color:var(--error); text-align:center; padding:var(--space-4);">Failed to load: ${err.message}</p>`;
+    content.innerHTML = `<p style="color:var(--error);text-align:center;padding:var(--space-4);">Failed to load: ${err.message}</p>`;
   }
+}
+
+// ── Helper: Weekly data aggregation ──
+function getWeeklyData(moods) {
+  const now = new Date();
+  const week = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const dayEnd = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1);
+    const dayMoods = moods.filter(m => {
+      const recorded = new Date(m.recorded_at || m.date);
+      return recorded >= dayStart && recorded < dayEnd;
+    });
+    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dayLabel = dayNames[d.getDay()];
+    if (dayMoods.length > 0) {
+      const avg = dayMoods.reduce((sum, m) => sum + (m.moodlevel || 3), 0) / dayMoods.length;
+      week.push({ label: dayLabel, value: Math.round(avg), count: dayMoods.length });
+    } else {
+      week.push({ label: dayLabel, value: null, count: 0 });
+    }
+  }
+  return week;
+}
+
+// ── Helper: Build mood chart data for bar chart ──
+function buildMoodChart(moods) {
+  const now = new Date();
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(now.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+    const dayMoods = moods.filter(m => {
+      const mDate = (m.date || m.recorded_at || '').split('T')[0];
+      return mDate === dateStr;
+    });
+    const avg = dayMoods.length > 0
+      ? dayMoods.reduce((s, m) => s + (m.moodlevel || 3), 0) / dayMoods.length
+      : 0;
+    const label = d.toLocaleDateString(undefined, { weekday: 'short' });
+    days.push({ label, avg: Math.round(avg * 10) / 10, count: dayMoods.length });
+  }
+  return days;
+}
+
+// ── Helper: Mood trend calculation ──
+function getMoodTrend(moods) {
+  if (moods.length < 2) return { icon: 'remove', text: 'Insufficient data', color: 'var(--outline)' };
+  const recent = moods.slice(0, 3);
+  const older = moods.slice(3, 6);
+  if (older.length === 0) return { icon: 'remove', text: 'Building baseline', color: 'var(--outline)' };
+  const recentAvg = recent.reduce((s, m) => s + (m.moodlevel || 3), 0) / recent.length;
+  const olderAvg = older.reduce((s, m) => s + (m.moodlevel || 3), 0) / older.length;
+  const diff = recentAvg - olderAvg;
+  if (diff > 0.3) return { icon: 'trending_up', text: `Improving (+${diff.toFixed(1)})`, color: 'var(--tertiary)' };
+  if (diff < -0.3) return { icon: 'trending_down', text: `Declining (${diff.toFixed(1)})`, color: 'var(--error)' };
+  return { icon: 'trending_flat', text: 'Stable', color: 'var(--primary)' };
+}
+
+// ── Helper: Week range string ──
+function getWeekRange() {
+  const now = new Date();
+  const dayOfWeek = now.getDay();
+  const start = new Date(now);
+  start.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  const fmt = { month: 'short', day: 'numeric' };
+  return `${start.toLocaleDateString(undefined, fmt)} - ${end.toLocaleDateString(undefined, fmt)}, ${end.getFullYear()}`;
+}
+
+// ── Canvas mood graph drawing ──
+function drawMoodGraph(moods, canvasId, containerId) {
+  const container = document.getElementById(containerId);
+  const canvas = document.getElementById(canvasId);
+  if (!container || !canvas) return;
+
+  const weekData = getWeeklyData(moods);
+  const hasData = weekData.some(d => d.value !== null);
+
+  if (!hasData) {
+    canvas.style.display = 'none';
+    container.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--on-surface-variant);"><span class="material-symbols-outlined" style="font-size:2.5rem;color:var(--outline);">mood</span><p style="font-size:0.8rem;margin-top:var(--space-1);">No mood data this week</p></div>';
+    return;
+  }
+
+  canvas.style.display = 'block';
+  const rect = container.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  const w = rect.width || 400;
+  const h = 200;
+
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  canvas.style.width = w + 'px';
+  canvas.style.height = h + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const padTop = 25, padBottom = 10, padLeft = 30, padRight = 15;
+  const gw = w - padLeft - padRight;
+  const gh = h - padTop - padBottom;
+
+  const yMin = 1, yMax = 5;
+  function yForVal(v) { return padTop + gh - ((v - yMin) / (yMax - yMin)) * gh; }
+  const xStep = gw / 6;
+  function xForIdx(i) { return padLeft + i * xStep; }
+
+  // Grid lines
+  ctx.strokeStyle = '#C1C8C220';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  for (let level = 1; level <= 5; level++) {
+    const y = yForVal(level);
+    ctx.beginPath();
+    ctx.moveTo(padLeft, y);
+    ctx.lineTo(w - padRight, y);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // Y-axis labels
+  ctx.fillStyle = '#8B949E';
+  ctx.font = '600 10px Inter, sans-serif';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  for (let level = 1; level <= 5; level++) {
+    ctx.fillText(level.toString(), padLeft - 8, yForVal(level));
+  }
+
+  // X-axis labels
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  weekData.forEach((d, i) => {
+    ctx.fillText(d.label, xForIdx(i), h - padBottom + 6);
+  });
+
+  // Points
+  const points = weekData.map((d, i) => ({
+    x: xForIdx(i),
+    y: d.value !== null ? yForVal(d.value) : null,
+    value: d.value,
+    label: d.label
+  }));
+
+  const validPoints = points.filter(p => p.y !== null);
+
+  if (validPoints.length >= 2) {
+    const tension = 0.3;
+
+    // Fill
+    ctx.beginPath();
+    ctx.moveTo(validPoints[0].x, validPoints[0].y);
+    for (let i = 0; i < validPoints.length - 1; i++) {
+      const p0 = validPoints[Math.max(0, i - 1)];
+      const p1 = validPoints[i];
+      const p2 = validPoints[i + 1];
+      const p3 = validPoints[Math.min(validPoints.length - 1, i + 2)];
+      const cp1x = p1.x + (p2.x - p0.x) * tension;
+      const cp1y = p1.y + (p2.y - p0.y) * tension;
+      const cp2x = p2.x - (p3.x - p1.x) * tension;
+      const cp2y = p2.y - (p3.y - p1.y) * tension;
+      ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+    }
+    ctx.lineTo(validPoints[validPoints.length - 1].x, h - padBottom);
+    ctx.lineTo(validPoints[0].x, h - padBottom);
+    ctx.closePath();
+    const fillGrad = ctx.createLinearGradient(0, padTop, 0, h - padBottom);
+    fillGrad.addColorStop(0, 'rgba(0, 200, 83, 0.15)');
+    fillGrad.addColorStop(1, 'rgba(0, 200, 83, 0.01)');
+    ctx.fillStyle = fillGrad;
+    ctx.fill();
+
+    // Stroke
+    ctx.beginPath();
+    ctx.moveTo(validPoints[0].x, validPoints[0].y);
+    for (let i = 0; i < validPoints.length - 1; i++) {
+      const p0 = validPoints[Math.max(0, i - 1)];
+      const p1 = validPoints[i];
+      const p2 = validPoints[i + 1];
+      const p3 = validPoints[Math.min(validPoints.length - 1, i + 2)];
+      const cp1x = p1.x + (p2.x - p0.x) * tension;
+      const cp1y = p1.y + (p2.y - p0.y) * tension;
+      const cp2x = p2.x - (p3.x - p1.x) * tension;
+      const cp2y = p2.y - (p3.y - p1.y) * tension;
+      ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+    }
+    const strokeGrad = ctx.createLinearGradient(validPoints[0].x, 0, validPoints[validPoints.length - 1].x, 0);
+    strokeGrad.addColorStop(0, '#735C00');
+    strokeGrad.addColorStop(1, '#1B4332');
+    ctx.strokeStyle = strokeGrad;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  }
+
+  // Data points
+  function moodColor(val) {
+    if (val <= 2) return '#FF3D5A';
+    if (val === 3) return '#FFD600';
+    return '#00C853';
+  }
+
+  points.forEach((p) => {
+    if (p.y === null) return;
+    const color = moodColor(p.value);
+    ctx.save();
+    ctx.shadowColor = color + '80';
+    ctx.shadowBlur = 8;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = color;
+    ctx.font = '700 10px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(p.value.toString(), p.x, p.y - 12);
+    ctx.restore();
+  });
 }

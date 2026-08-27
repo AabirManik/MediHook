@@ -27,7 +27,15 @@ export const db = {
   getSafetyScore: async (userId) => {
     if (!isValidUUID(userId)) return null;
     const { data, error } = await supabase.from('profiles').select('safety_score, score_updated_at').eq('id', userId).single();
-    if (error) throw error;
+    if (error) {
+      console.warn('getSafetyScore direct query failed, trying RPC fallback:', error.message);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || user.id === userId) return null;
+      const { data: link } = await supabase.from('patient_caregivers').select('id').eq('patient_id', userId).eq('caregiver_id', user.id).eq('status', 'ACTIVE').limit(1);
+      if (!link || link.length === 0) return null;
+      const { data: profile } = await supabase.rpc('get_patient_safety_score_for_caregiver', { p_patient_id: userId }).maybeSingle();
+      return profile || null;
+    }
     return data;
   },
 
@@ -246,14 +254,30 @@ export const db = {
   getPatientPrescriptionsForCaregiver: async (patientId) => {
     if (!isValidUUID(patientId)) return [];
     const { data, error } = await supabase.rpc('get_patient_prescriptions_for_caregiver', { p_patient_id: patientId });
-    if (error) throw error;
+    if (error) {
+      console.warn('RPC get_patient_prescriptions_for_caregiver failed, falling back:', error.message);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+      const { data: link } = await supabase.from('patient_caregivers').select('id').eq('patient_id', patientId).eq('caregiver_id', user.id).eq('status', 'ACTIVE').limit(1);
+      if (!link || link.length === 0) return [];
+      const { data: meds } = await supabase.from('prescriptions').select('medication, dosage, instructions, doctorName, confidence, date, created_at').eq('user_id', patientId).order('created_at', { ascending: false });
+      return meds || [];
+    }
     return data || [];
   },
 
   getPatientMoodsForCaregiver: async (patientId) => {
     if (!isValidUUID(patientId)) return [];
     const { data, error } = await supabase.rpc('get_patient_moods_for_caregiver', { p_patient_id: patientId });
-    if (error) throw error;
+    if (error) {
+      console.warn('RPC get_patient_moods_for_caregiver failed, falling back:', error.message);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+      const { data: link } = await supabase.from('patient_caregivers').select('id').eq('patient_id', patientId).eq('caregiver_id', user.id).eq('status', 'ACTIVE').limit(1);
+      if (!link || link.length === 0) return [];
+      const { data: moods } = await supabase.from('mood_logs').select('moodlevel, notes, date, recorded_at').eq('user_id', patientId).order('date', { ascending: false }).limit(30);
+      return moods || [];
+    }
     return data || [];
   },
 

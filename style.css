@@ -3736,6 +3736,116 @@ body::before {
   color: var(--primary);
 }
 
+/* ── Caregiver Dashboard ── */
+.caregiver-summary-card {
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
+  text-align: center;
+  box-shadow: var(--shadow-low);
+  border: 1px solid var(--outline-variant);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+.caregiver-summary-value {
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--on-surface);
+}
+.caregiver-summary-label {
+  font-size: 0.7rem;
+  color: var(--on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.cg-report-paper {
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--outline-variant);
+  overflow: hidden;
+  box-shadow: var(--shadow-low);
+}
+.cg-report-bar {
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary), var(--tertiary));
+}
+.cg-report-body {
+  padding: var(--space-4);
+}
+.cg-report-section {
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--outline-variant);
+}
+.cg-report-section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+.cg-report-section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-bottom: var(--space-3);
+}
+.cg-report-safety {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+.cg-report-safety-value {
+  font-weight: 700;
+  font-size: 2rem;
+}
+.cg-report-mood-bars {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-end;
+  height: 80px;
+}
+.cg-report-mood-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.cg-report-mood-bar-track {
+  width: 100%;
+  height: 60px;
+  background: var(--surface-container);
+  border-radius: var(--radius-sm);
+  position: relative;
+  overflow: hidden;
+}
+.cg-report-mood-bar-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: var(--radius-sm);
+  transition: height 0.3s ease;
+}
+.cg-report-mood-bar-label {
+  font-size: 0.6rem;
+  color: var(--on-surface-variant);
+}
+.cg-report-med-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--outline-variant);
+  font-size: 0.8rem;
+}
+.cg-report-med-row:last-child {
+  border-bottom: none;
+}
+
 /* ── Toggle Switch ── */
 .toggle-switch {
   position: relative;

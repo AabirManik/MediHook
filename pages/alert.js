@@ -273,8 +273,8 @@ function renderPatientDashboard(health) {
         <span class="alert-metric-label">Mood Avg</span>
       </div>
       <div class="alert-metric-card">
-        <span class="material-symbols-outlined" style="color:${sosContacts.length > 0 ? '#00C853' : '#FF3D5A'};">${sosContacts.length > 0 ? 'emergency' : 'person_off'}</span>
-        <span class="alert-metric-value">${sosContacts.length > 0 ? 'âœ“' : 'âœ—'}</span>
+        <span class="material-symbols-outlined" style="color:${sosContacts.length > 0 ? '#00C853' : '#FF3D5A'};">${sosContacts.length > 0 ? 'contact_phone' : 'person_off'}</span>
+        <span class="alert-metric-value" style="color:${sosContacts.length > 0 ? '#00C853' : '#FF3D5A'};">${sosContacts.length > 0 ? 'On' : 'Off'}</span>
         <span class="alert-metric-label">SOS Setup</span>
       </div>
     </div>
