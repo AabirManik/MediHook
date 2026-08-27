@@ -114,6 +114,15 @@ function renderPatientMode(navigate) {
       </div>
     </section>
 
+    <!-- Doctor Notes Section -->
+    <section id="doctor-notes-section" style="margin-bottom:var(--space-10); display:none;">
+      <h3 class="section-title" style="margin-bottom:var(--space-4);">
+        <span class="material-symbols-outlined" style="font-size:1.25rem;vertical-align:middle;">clinical_notes</span>
+        Doctor Notes
+      </h3>
+      <div id="doctor-notes-container" style="display:grid;gap:var(--space-3);"></div>
+    </section>
+
     <!-- Insights Banner -->
     <section class="insights-banner">
       <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBG5AMcOSnCys69_lYg7aO1ZjK8H1KQJaSFz9L2wwjsR3wj_E8K2NmRUhLHXkZf-zG9K58hD0kI6RMXOqcXAUrCusYPB4hbZnHuWiq5ncEmsF_kXkBOq3W9Rvz30_6T2RdVGEuS27T8-B4VsDwrPlDA9u1mk6295cId4NsM0CszOQtImq_ptOtznJT6AcskPr7vLvCSTT3o52X7ivQyOVuZ7wivAOBXoIAZKvzG-hmKoTyyumwdXO5VKglYHrlDqLRiUBcrGt9THg" alt="Herbs and medicine flat lay" />
@@ -309,6 +318,32 @@ export async function initHome() {
           }
         }
       });
+    }
+
+    // Load doctor notes for this patient
+    const notesSection = document.getElementById('doctor-notes-section');
+    const notesContainer = document.getElementById('doctor-notes-container');
+    if (notesSection && notesContainer) {
+      try {
+        const notes = await api.getDoctorNotes(userId);
+        if (notes && notes.length > 0) {
+          notesSection.style.display = 'block';
+          notesContainer.innerHTML = notes.map(note => {
+            const doctorName = note.doctor?.full_name || 'Your Doctor';
+            const dateStr = new Date(note.updated_at || note.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+            return `
+              <div class="card" style="padding:var(--space-4);border-left:3px solid var(--primary);">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+                  <span style="font-weight:700;font-size:0.85rem;color:var(--primary);">Dr. ${doctorName}</span>
+                  <span style="font-size:0.7rem;color:var(--on-surface-variant);">${dateStr}</span>
+                </div>
+                <p style="font-size:0.85rem;line-height:1.5;color:var(--on-surface);">${note.note_text}</p>
+              </div>`;
+          }).join('');
+        }
+      } catch (e) {
+        // Notes not available — silently ignore
+      }
     }
 
   } catch (err) {

@@ -250,6 +250,13 @@ export const db = {
     return data || [];
   },
 
+  getPatientMoodsForCaregiver: async (patientId) => {
+    if (!isValidUUID(patientId)) return [];
+    const { data, error } = await supabase.rpc('get_patient_moods_for_caregiver', { p_patient_id: patientId });
+    if (error) throw error;
+    return data || [];
+  },
+
   // ------------------------------------------------------------------
   // SOS SYSTEM
   // ------------------------------------------------------------------
@@ -361,5 +368,69 @@ export const db = {
       .update({ read: true })
       .eq('id', reportId);
     if (error) throw error;
+  },
+
+  // ------------------------------------------------------------------
+  // DOCTOR NOTES
+  // ------------------------------------------------------------------
+  getDoctorNotes: async (doctorId, patientId) => {
+    if (!isValidUUID(doctorId) || !isValidUUID(patientId)) return null;
+    const { data, error } = await supabase.rpc('get_doctor_notes_for_patient', { p_patient_id: patientId });
+    if (error) throw error;
+    return data && data.length > 0 ? data[0] : null;
+  },
+
+  saveDoctorNote: async (doctorId, patientId, noteText) => {
+    if (!isValidUUID(doctorId) || !isValidUUID(patientId)) return null;
+    const { data, error } = await supabase.rpc('upsert_doctor_note', { p_patient_id: patientId, p_note_text: noteText });
+    if (error) throw error;
+    return data;
+  },
+
+  getAllDoctorNotesForDoctor: async (doctorId) => {
+    if (!isValidUUID(doctorId)) return [];
+    const { data, error } = await supabase
+      .from('doctor_notes')
+      .select('*')
+      .eq('doctor_id', doctorId)
+      .order('updated_at', { ascending: false });
+    if (error) throw error;
+
+    if (data.length > 0) {
+      const pids = [...new Set(data.map(d => d.patient_id))];
+      const { data: profs } = await supabase.from('profiles').select('id, full_name').in('id', pids);
+      const pMap = {};
+      if (profs) profs.forEach(p => pMap[p.id] = p);
+      data.forEach(d => { d.patient = pMap[d.patient_id] || { full_name: 'Unknown' }; });
+    }
+    return data;
+  },
+
+  // ------------------------------------------------------------------
+  // DOCTOR ALERTS (SOS events from connected patients)
+  // ------------------------------------------------------------------
+  getDoctorAlerts: async (doctorId) => {
+    if (!isValidUUID(doctorId)) return [];
+    const { data, error } = await supabase
+      .from('sos_events')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+
+    if (data.length > 0) {
+      const connectedPatients = await db.getConnectedPatients(doctorId);
+      const connectedIds = new Set(connectedPatients.map(p => p.patient_id));
+      const filtered = data.filter(e => connectedIds.has(e.patient_id));
+
+      const pids = [...new Set(filtered.map(e => e.patient_id))];
+      if (pids.length > 0) {
+        const { data: profs } = await supabase.from('profiles').select('id, full_name').in('id', pids);
+        const pMap = {};
+        if (profs) profs.forEach(p => pMap[p.id] = p);
+        filtered.forEach(e => { e.patient = pMap[e.patient_id] || { full_name: 'Unknown' }; });
+      }
+      return filtered;
+    }
+    return [];
   }
 };

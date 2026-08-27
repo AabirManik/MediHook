@@ -220,6 +220,7 @@ function renderAuthScreen(t) {
                 <option value="patient">Patient</option>
                 <option value="caregiver">Caregiver</option>
                 <option value="pharmacist">Pharmacist</option>
+                <option value="doctor">Doctor</option>
               </select>
             </div>
           </div>

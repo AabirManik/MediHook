@@ -429,6 +429,21 @@ body::before {
 .btn-error:hover { opacity: 0.9; }
 .btn-error:active { transform: scale(0.98); }
 
+.ack-sos-btn {
+  flex: 0 0 auto;
+  width: auto;
+  min-height: 2.25rem;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.ack-sos-btn:focus-visible {
+  outline: 3px solid var(--tertiary-fixed);
+  outline-offset: 2px;
+}
+
 .chip {
   display: inline-flex;
   align-items: center;
@@ -3765,4 +3780,170 @@ body::before {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
+
+/* ---- Doctor Dashboard ---- */
+.doctor-tab-bar {
+  display: flex;
+  gap: var(--space-1);
+  border-bottom: 1px solid var(--outline-variant);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.doctor-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-2);
+  border: none;
+  background: none;
+  color: var(--on-surface-variant);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+  position: relative;
+}
+.doctor-tab .material-symbols-outlined { font-size: 1.1rem; }
+.doctor-tab:hover { color: var(--primary); background: var(--surface-container-low); }
+.doctor-tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+.doctor-tab-badge {
+  position: absolute;
+  top: 6px;
+  right: calc(50% - 26px);
+  min-width: 1rem;
+  height: 1rem;
+  padding: 0 4px;
+  border-radius: 9999px;
+  background: var(--error);
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.doctor-summary-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-2);
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-xl);
+}
+.doctor-summary-card .material-symbols-outlined { font-size: 1.5rem; }
+.doctor-summary-value { font-size: 1.5rem; font-weight: 800; }
+.doctor-summary-label { font-size: 0.7rem; color: var(--on-surface-variant); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+.doctor-patient-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+  position: relative;
+}
+.doctor-patient-card:hover {
+  background: var(--surface-container-high);
+  box-shadow: var(--shadow-sm);
+}
+.doctor-patient-avatar {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.doctor-alert-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  background: var(--error);
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.4); }
+}
+.doctor-sos-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--error-container);
+  border: 1px solid var(--error);
+  border-radius: var(--radius-xl);
+  animation: shake 0.5s ease-in-out 1;
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+.doctor-alert-card {
+  padding: var(--space-4);
+  background: var(--surface-container);
+  border-radius: var(--radius-xl);
+}
+.doctor-status-chip {
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.doctor-empty-state {
+  text-align: center;
+  padding: var(--space-8) var(--space-4);
+}
+.doctor-empty-state h4 { margin-top: var(--space-2); }
+.doctor-empty-state p { margin-top: var(--space-1); }
+.doctor-profile-section {
+  background: var(--surface-container);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+}
+.doctor-notes-editor {
+  width: 100%;
+  min-height: 6rem;
+  padding: var(--space-3);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-lg);
+  background: var(--surface-container-low);
+  color: var(--on-surface);
+  font-family: inherit;
+  font-size: 0.85rem;
+  resize: vertical;
+}
+.doctor-notes-editor:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+/* Dark mode overrides for doctor components */
+[data-theme="dark"] .doctor-patient-card { border-color: rgba(255,255,255,0.1); }
+[data-theme="dark"] .doctor-summary-card { border-color: rgba(255,255,255,0.1); }
+[data-theme="dark"] .doctor-alert-card { border-color: rgba(255,255,255,0.1); }
+[data-theme="dark"] .doctor-sos-banner { border-color: rgba(255,0,0,0.3); background: rgba(255,0,0,0.08); }
 

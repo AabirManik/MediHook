@@ -205,6 +205,10 @@ export const api = {
   getPatientPrescriptionsForCaregiver: async (patientId) => {
     return await db.getPatientPrescriptionsForCaregiver(patientId);
   },
+
+  getPatientMoodsForCaregiver: async (patientId) => {
+    return await db.getPatientMoodsForCaregiver(patientId);
+  },
   
   triggerSOS: async (patientId, message) => {
     return await db.triggerSOS(patientId, message);
@@ -236,5 +240,25 @@ export const api = {
 
   markReportRead: async (reportId) => {
     return await db.markReportRead(reportId);
+  },
+
+  getDoctorNotes: async (patientId) => {
+    const userId = window.__currentUserId || localStorage.getItem('userId');
+    return await db.getDoctorNotes(userId, patientId);
+  },
+
+  saveDoctorNote: async (patientId, noteText) => {
+    const userId = window.__currentUserId || localStorage.getItem('userId');
+    return await db.saveDoctorNote(userId, patientId, noteText);
+  },
+
+  getAllDoctorNotesForDoctor: async () => {
+    const userId = window.__currentUserId || localStorage.getItem('userId');
+    return await db.getAllDoctorNotesForDoctor(userId);
+  },
+
+  getDoctorAlerts: async () => {
+    const userId = window.__currentUserId || localStorage.getItem('userId');
+    return await db.getDoctorAlerts(userId);
   }
 };

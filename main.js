@@ -15,6 +15,7 @@ import { renderMedications, initMedications } from './pages/medications.js';
 import { renderReport, initReport } from './pages/report.js';
 import { renderClearScript, cleanupClearScript } from './pages/clearscript.js';
 import { renderDrugInteraction, initDrugInteraction, cleanupDrugInteraction } from './pages/drug-interaction.js';
+import { renderDoctor, initDoctor, cleanupDoctor } from './pages/doctor.js';
 import { renderLogin } from './pages/login.js';
 import { renderProfile, initProfile } from './pages/profile.js';
 import { renderLanding, cleanupLanding } from './pages/landing.js';
@@ -38,6 +39,7 @@ const pages = {
   medications: renderMedications,
   report: renderReport,
   'drug-interaction': renderDrugInteraction,
+  doctor: renderDoctor,
   login: renderLogin,
   profile: renderProfile,
   landing: renderLanding,
@@ -152,6 +154,7 @@ function navigate(page, skipPushState) {
     'drug-interaction': cleanupDrugInteraction,
     clearscript: cleanupClearScript,
     timeline: cleanupTimeline,
+    doctor: cleanupDoctor,
   };
   currentCleanup = cleanupMap[page] || null;
   isNavigating = false;
@@ -174,6 +177,11 @@ function updateBottomNavHTML(page) {
        { id: 'alert', icon: 'notifications_active', label: 'Alerts' },
        { id: 'medications', icon: 'pill', label: 'Meds' }
     ],
+    doctor: [
+      { id: 'doctor', icon: 'medical_services', label: 'Dashboard' },
+      { id: 'alert', icon: 'notifications_active', label: 'Alerts' },
+      { id: 'caregiver', icon: 'group', label: 'Patients' }
+    ],
     pharmacist: [
        { id: 'home', icon: 'local_pharmacy', label: 'Queue' },
        { id: 'scanner', icon: 'document_scanner', label: 'Scan Rx' }
@@ -183,7 +191,7 @@ function updateBottomNavHTML(page) {
   const items = navItems[role] || navItems['patient'];
   
   // Create mapping array to correctly highlight active states based on current route
-  const activeTabMap = { home: 'home', scanner: 'scanner', clearscript: 'scanner', timeline: 'timeline', mood: 'mood', 'risk-analysis': 'scanner', alert: 'alert', caregiver: 'caregiver', symptoms: 'home', medications: 'medications', report: 'report', 'drug-interaction': 'home', profile: 'home' };
+  const activeTabMap = { home: 'home', scanner: 'scanner', clearscript: 'scanner', timeline: 'timeline', mood: 'mood', 'risk-analysis': 'scanner', alert: 'alert', caregiver: 'caregiver', symptoms: 'home', medications: 'medications', report: 'report', 'drug-interaction': 'home', profile: 'home', doctor: 'doctor' };
   const activeTab = activeTabMap[page] || page;
 
   bottomNav.innerHTML = items.map(item => `
@@ -291,6 +299,11 @@ function bindPageEvents(page) {
   // --- Profile (name/info/logout) ---
   if (page === 'profile') {
     initProfile(navigate);
+  }
+
+  // Doctor Dashboard
+  if (page === 'doctor') {
+    initDoctor();
   }
 
   if (page === 'scanner') {
@@ -507,7 +520,7 @@ auth.onAuthStateChange(async (event, session) => {
         sessionStorage.removeItem('returnTo');
         navigate(returnTo);
       } else {
-        navigate(window.__currentUserRole === 'caregiver' ? 'caregiver' : 'home');
+        navigate(window.__currentUserRole === 'caregiver' ? 'caregiver' : window.__currentUserRole === 'doctor' ? 'doctor' : 'home');
       }
     }
   } else {
@@ -566,7 +579,7 @@ if (window.location.hash) {
       } else {
         navigate('landing', true);
       }
-      if (_unsub) _unsub();
+      if (_unsub?.data?.subscription) _unsub.data.subscription.unsubscribe();
     });
   }
 }

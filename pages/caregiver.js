@@ -210,7 +210,7 @@ export async function initCaregiver() {
   }
 }
 
-// ── Patient View Logic ──
+// â”€â”€ Patient View Logic â”€â”€
 async function initPatientView(api, userId, signal) {
   const inviteModal = document.getElementById('caregiver-invite-modal');
   const inviteBtn = document.getElementById('invite-caregiver-btn');
@@ -280,7 +280,7 @@ async function loadPatientCaregivers(api, userId, signal) {
               </div>
               <div>
                 <h4 style="font-weight:700; font-size:0.9rem;">${inv.caregiver_name}</h4>
-                <p style="font-size:0.75rem; color:var(--on-surface-variant);">Pending · Sent to ${inv.caregiver_email}</p>
+                <p style="font-size:0.75rem; color:var(--on-surface-variant);">Pending Â· Sent to ${inv.caregiver_email}</p>
               </div>
             </div>
             <div style="display:flex; gap:var(--space-1); align-items:center;">
@@ -471,7 +471,7 @@ async function shareWithCaregivers(api, userId, type, btn, statusEl, signal) {
   }
 }
 
-// ── Caregiver View Logic ──
+// â”€â”€ Caregiver View Logic â”€â”€
 async function initCaregiverView(api, userId, signal) {
   const alertContainer = document.getElementById('caregiver-alert-container');
   const patientsList = document.getElementById('caregiver-patients-list');
@@ -548,19 +548,13 @@ async function loadCaregiverDashboard(api, userId, signal) {
     if (activeSOS.length > 0) {
       const sos = activeSOS[0];
       alertContainer.innerHTML = `
-        <div class="alert-warning-card" style="border-color:var(--error); animation: pulse 2s infinite;">
-          <div class="glow" style="background:radial-gradient(circle at 10% 10%, rgba(255,0,0,0.2) 0%, transparent 100%);"></div>
-          <div class="alert-header">
-            <div class="alert-icon-wrap" style="background:var(--error);"><span class="material-symbols-outlined" style="color:white;">emergency</span></div>
-            <div>
-              <h3 style="color:var(--error);">EMERGENCY SOS</h3>
-              <p class="severity" style="color:var(--error);">Triggered by ${sos.profiles?.full_name}</p>
-            </div>
+        <div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) var(--space-4);background:var(--error-container);border:1px solid var(--error);border-radius:var(--radius-xl);">
+          <span class="material-symbols-outlined" style="color:var(--error);font-size:1.5rem;flex-shrink:0;">emergency</span>
+          <div style="flex:1;min-width:0;">
+            <h4 style="font-weight:700;font-size:0.85rem;color:var(--error);margin:0;">SOS Alert</h4>
+            <p style="font-size:0.75rem;color:var(--on-surface-variant);margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${sos.profiles?.full_name || "Patient"}: ${sos.message || "No details"}</p>
           </div>
-          <div class="alert-body">
-            <p>${sos.message}</p>
-            <button class="btn-error ack-sos-btn" data-id="${sos.id}" style="width:100%; margin-top:var(--space-4); justify-content:center;">ACKNOWLEDGE ALERT</button>
-          </div>
+          <button class="btn-error ack-sos-btn" data-id="${sos.id}" style="flex-shrink:0;font-size:0.75rem;padding:var(--space-1) var(--space-3);border-radius:var(--radius-lg);">Acknowledge</button>
         </div>`;
 
       if (!alertContainer._ackHandlerAttached) {
@@ -681,37 +675,52 @@ async function openPatientDetail(api, patientId, patientName, signal) {
   if (!overlay || !content) return;
 
   nameEl.textContent = patientName;
-  content.innerHTML = '<div style="text-align:center; padding:var(--space-4); color:var(--on-surface-variant);"><span class="material-symbols-outlined" style="animation:spin 1s linear infinite;">sync</span><p style="margin-top:var(--space-2); font-size:0.875rem;">Loading prescriptions...</p></div>';
+  content.innerHTML = '<div style="text-align:center; padding:var(--space-4); color:var(--on-surface-variant);"><span class="material-symbols-outlined" style="animation:spin 1s linear infinite;">sync</span><p style="margin-top:var(--space-2); font-size:0.875rem;">Loading patient data...</p></div>';
   overlay.style.display = 'flex';
 
   document.getElementById('close-detail-btn').onclick = () => { overlay.style.display = 'none'; };
   overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.style.display = 'none'; }, { signal });
 
   try {
-    const prescriptions = await api.getPatientPrescriptionsForCaregiver(patientId);
-    if (prescriptions.length === 0) {
-      content.innerHTML = '<p style="font-size:0.875rem; color:var(--on-surface-variant); text-align:center; padding:var(--space-4);">No prescriptions on record.</p>';
-      return;
-    }
-    let html = '<div style="display:grid; gap:var(--space-3);">';
-    prescriptions.forEach(p => {
-      const conf = p.confidence || 0;
-      let confColor = conf >= 90 ? '#2E7D32' : conf >= 60 ? '#E65100' : '#C62828';
-      html += `
-        <div class="caregiver-card" style="border-left:3px solid ${confColor};">
-          <div style="width:100%;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-1);">
-              <h4 style="font-weight:700; font-size:0.9rem;">${p.medication}</h4>
-              <span style="font-size:0.7rem; font-weight:700; color:${confColor};">${conf}%</span>
+    const [prescriptions, moods] = await Promise.all([
+      api.getPatientPrescriptionsForCaregiver(patientId),
+      api.getPatientMoodsForCaregiver(patientId).catch(() => [])
+    ]);
+    let html = '';
+
+    if (prescriptions.length > 0) {
+      html += '<h4 style="font-weight:700;font-size:0.85rem;margin-bottom:var(--space-2);">Medications</h4><div style="display:grid; gap:var(--space-3);margin-bottom:var(--space-4);">';
+      prescriptions.forEach(p => {
+        const conf = p.confidence || 0;
+        let confColor = conf >= 90 ? '#2E7D32' : conf >= 60 ? '#E65100' : '#C62828';
+        html += `
+          <div class="caregiver-card" style="border-left:3px solid ${confColor};">
+            <div style="width:100%;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-1);">
+                <h4 style="font-weight:700; font-size:0.9rem;">${p.medication}</h4>
+                <span style="font-size:0.7rem; font-weight:700; color:${confColor};">${conf}%</span>
+              </div>
+              ${p.dosage ? `<p style="font-size:0.8rem; color:var(--on-surface-variant);">Dosage: ${p.dosage}</p>` : ''}
+              ${p.instructions ? `<p style="font-size:0.8rem; color:var(--on-surface-variant);">Instructions: ${p.instructions}</p>` : ''}
+              ${p.doctorName ? `<p style="font-size:0.75rem; color:var(--outline); margin-top:var(--space-1);">Dr. ${p.doctorName}</p>` : ''}
             </div>
-            ${p.dosage ? `<p style="font-size:0.8rem; color:var(--on-surface-variant);">Dosage: ${p.dosage}</p>` : ''}
-            ${p.instructions ? `<p style="font-size:0.8rem; color:var(--on-surface-variant);">Instructions: ${p.instructions}</p>` : ''}
-            ${p.doctorName ? `<p style="font-size:0.75rem; color:var(--outline); margin-top:var(--space-1);">Dr. ${p.doctorName}</p>` : ''}
-          </div>
-        </div>`;
-    });
-    html += '</div>';
-    content.innerHTML = html;
+          </div>`;
+      });
+      html += '</div>';
+    } else {
+      html += '<p style="font-size:0.85rem;color:var(--on-surface-variant);margin-bottom:var(--space-3);">No prescriptions on record.</p>';
+    }
+
+    if (moods.length > 0) {
+      html += '<h4 style="font-weight:700;font-size:0.85rem;margin-bottom:var(--space-2);">Recent Mood</h4>';
+      moods.slice(0, 5).forEach(m => {
+        const moodEmoji = m.moodlevel >= 4 ? '😊' : m.moodlevel >= 3 ? '😐' : '😟';
+        const dateStr = new Date(m.recorded_at || m.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:var(--space-2) 0;border-bottom:1px solid var(--outline-variant);font-size:0.8rem;"><span>' + moodEmoji + ' Mood ' + m.moodlevel + '/5</span><span style="color:var(--on-surface-variant);">' + dateStr + '</span></div>';
+      });
+    }
+
+    content.innerHTML = html || '<p style="font-size:0.85rem;color:var(--on-surface-variant);text-align:center;padding:var(--space-4);">No data available.</p>';
   } catch (err) {
     content.innerHTML = `<p style="color:var(--error); text-align:center; padding:var(--space-4);">Failed to load: ${err.message}</p>`;
   }

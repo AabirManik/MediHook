@@ -1,4 +1,4 @@
-// Alert Page — Dynamic Health Status Dashboard
+// Alert Page â€” Dynamic Health Status Dashboard
 let _alertAbort = null;
 
 export function cleanupAlert() {
@@ -35,7 +35,7 @@ export async function initAlert() {
   if (!contentEl) return;
 
   try {
-    const isDoctor = window.__currentUserRole === 'caregiver' || window.__currentUserRole === 'pharmacist';
+    const isDoctor = window.__currentUserRole === 'caregiver' || window.__currentUserRole === 'pharmacist' || window.__currentUserRole === 'doctor';
 
     if (isDoctor) {
       await renderDoctorView(contentEl, api, userId, signal);
@@ -131,10 +131,10 @@ async function renderDoctorView(contentEl, api, userId, signal) {
         </div>
         <div class="alert-patient-metrics">
           <span>${pMeds.length} meds</span>
-          <span>·</span>
+          <span>Â·</span>
           <span>${health.alerts.length} alert${health.alerts.length !== 1 ? 's' : ''}</span>
-          <span>·</span>
-          <span>Mood ${lastMood ? lastMood.moodlevel + '/5' : '—'}</span>
+          <span>Â·</span>
+          <span>Mood ${lastMood ? lastMood.moodlevel + '/5' : 'â€”'}</span>
         </div>
         <p class="alert-patient-time">Last check: ${lastMoodTime}</p>
       </div>
@@ -198,7 +198,7 @@ function analyzeHealth(prescriptions, interactionResult, moods, contacts) {
   // Compute mood average
   const moodAvg = moods.length > 0
     ? (moods.slice(0, 7).reduce((s, m) => s + (m.moodlevel || 3), 0) / Math.min(moods.length, 7)).toFixed(1)
-    : '—';
+    : 'â€”';
 
   return { status, alerts, prescriptions, moods, contacts, interactionResult, moodAvg };
 }
@@ -238,7 +238,7 @@ function renderPatientDashboard(health) {
   if (status === 'good') {
     const parts = [];
     if (prescriptions.length > 0) parts.push(`${prescriptions.length} medication${prescriptions.length > 1 ? 's' : ''} tracked`);
-    if (moodAvg !== '—') parts.push(`Mood averaging ${moodAvg}/5`);
+    if (moodAvg !== 'â€”') parts.push(`Mood averaging ${moodAvg}/5`);
     if (sosContacts.length > 0) parts.push('Emergency contacts configured');
     if (parts.length > 0) smartDesc = parts.join('. ') + '.';
   }
@@ -274,7 +274,7 @@ function renderPatientDashboard(health) {
       </div>
       <div class="alert-metric-card">
         <span class="material-symbols-outlined" style="color:${sosContacts.length > 0 ? '#00C853' : '#FF3D5A'};">${sosContacts.length > 0 ? 'emergency' : 'person_off'}</span>
-        <span class="alert-metric-value">${sosContacts.length > 0 ? '✓' : '✗'}</span>
+        <span class="alert-metric-value">${sosContacts.length > 0 ? 'âœ“' : 'âœ—'}</span>
         <span class="alert-metric-label">SOS Setup</span>
       </div>
     </div>
@@ -340,7 +340,7 @@ function renderAlertCard(alert) {
   if (alert.type === 'interaction') {
     body = alert.pairs.map(p => `
       <div class="alert-issue-pair">
-        <strong>${p.drugA}</strong> <span style="color:${cfg.color};">↔</span> <strong>${p.drugB}</strong>
+        <strong>${p.drugA}</strong> <span style="color:${cfg.color};">â†”</span> <strong>${p.drugB}</strong>
         <span class="alert-severity-badge" style="background:${cfg.color}20; color:${cfg.color};">${p.severity}</span>
         <p>${p.message || 'This combination may require medical review.'}</p>
       </div>
@@ -348,7 +348,7 @@ function renderAlertCard(alert) {
   } else if (alert.type === 'polypharmacy') {
     body = `<p>You are taking <strong>${alert.count} medications</strong>. Polypharmacy increases the risk of adverse interactions. Consider a medication review with your doctor.</p>`;
   } else if (alert.type === 'mood-decline') {
-    body = `<p>Your mood has declined for 3 consecutive entries: <strong>${alert.levels.join(' → ')}</strong>/5. This may indicate a side effect or worsening condition.</p>`;
+    body = `<p>Your mood has declined for 3 consecutive entries: <strong>${alert.levels.join(' â†’ ')}</strong>/5. This may indicate a side effect or worsening condition.</p>`;
   } else if (alert.type === 'mood-low') {
     body = `<p>Your mood dropped to <strong>2/5 or lower</strong> recently. If this persists, consult your healthcare provider.</p>`;
   } else if (alert.type === 'no-contacts') {
@@ -375,9 +375,28 @@ function bindPatientActions(contentEl, userId, health, signal) {
       try {
         notifyBtn.disabled = true;
         notifyBtn.innerHTML = '<span class="material-symbols-outlined" style="animation:spin 1s linear infinite;">progress_activity</span> Sending...';
-        await api.triggerSOS(userId, generateClinicalSummary(health));
-        notifyBtn.innerHTML = '<span class="material-symbols-outlined">check_circle</span> Sent!';
-        window.showToast('Health report sent to your doctor!', true);
+        const caregivers = await api.getConnectedCaregivers(userId);
+        if (caregivers.length === 0) {
+          window.showToast('Connect with a doctor/caregiver first via the Caregiver Hub.', true);
+          notifyBtn.innerHTML = '<span class="material-symbols-outlined">send</span> Notify Doctor';
+          notifyBtn.disabled = false;
+          return;
+        }
+        const summary = generateClinicalSummary(health);
+        let sentCount = 0;
+        for (const cg of caregivers) {
+          try {
+            await api.shareReport(userId, cg.caregiver_id, summary);
+            sentCount++;
+          } catch (e) { console.warn('Failed to notify', cg.caregiver_id, e); }
+        }
+        if (sentCount > 0) {
+          notifyBtn.innerHTML = '<span class="material-symbols-outlined">check_circle</span> Sent!';
+          window.showToast('Report sent to ' + sentCount + ' connected doctor' + (sentCount > 1 ? 's' : '') + '!', false);
+        } else {
+          window.showToast('Failed to send report.', true);
+          notifyBtn.innerHTML = '<span class="material-symbols-outlined">send</span> Notify Doctor';
+        }
         setTimeout(() => {
           notifyBtn.innerHTML = '<span class="material-symbols-outlined">send</span> Notify Doctor';
           notifyBtn.disabled = false;
@@ -439,7 +458,7 @@ function generateClinicalSummary(health) {
     lines.push('');
     lines.push('--- Drug Interactions ---');
     interactionResult.pairs.forEach(p => {
-      lines.push(`- ${p.drugA} ↔ ${p.drugB} [${p.severity}]: ${p.message || 'See details'}`);
+      lines.push(`- ${p.drugA} â†” ${p.drugB} [${p.severity}]: ${p.message || 'See details'}`);
     });
   }
   if (moods.length > 0) {
@@ -469,7 +488,7 @@ function generatePrintableReport(health) {
       <td>${p.drugA}</td>
       <td>${p.drugB}</td>
       <td style="color:${p.severity === 'High' ? '#C62828' : '#F57C00'}; font-weight:700;">${p.severity}</td>
-      <td>${p.message || '—'}</td>
+      <td>${p.message || 'â€”'}</td>
     </tr>
   `).join('') || '<tr><td colspan="4" style="text-align:center; color:#888;">No interactions detected</td></tr>';
 
@@ -477,12 +496,12 @@ function generatePrintableReport(health) {
     <tr>
       <td>${new Date(m.recorded_at || m.date).toLocaleDateString()}</td>
       <td style="font-weight:700;">${m.moodlevel}/5</td>
-      <td>${m.notes || '—'}</td>
+      <td>${m.notes || 'â€”'}</td>
     </tr>
   `).join('') || '<tr><td colspan="3" style="text-align:center; color:#888;">No mood data</td></tr>';
 
   return `<!DOCTYPE html>
-<html><head><title>Sanjeev AI — Clinical Report</title>
+<html><head><title>Sanjeev AI â€” Clinical Report</title>
 <style>
   body { font-family:Inter,sans-serif; padding:40px; max-width:700px; margin:0 auto; color:#1a1a1a; }
   h1 { color:#012d1d; font-size:1.5rem; border-bottom:2px solid #012d1d; padding-bottom:8px; }
@@ -493,7 +512,7 @@ function generatePrintableReport(health) {
   .status-badge { display:inline-block; padding:4px 12px; border-radius:20px; font-weight:700; font-size:0.8rem; }
   .footer { margin-top:32px; font-size:0.75rem; color:#888; border-top:1px solid #eee; padding-top:12px; }
 </style></head><body>
-  <h1>Sanjeev AI — Clinical Report</h1>
+  <h1>Sanjeev AI â€” Clinical Report</h1>
   <p><strong>Patient:</strong> ${window.__currentUserName || 'Patient'}</p>
   <p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>
   <p><strong>Overall Status:</strong> <span class="status-badge" style="background:${statusColors[status]}20; color:${statusColors[status]};">${statusLabels[status]}</span></p>
@@ -501,7 +520,7 @@ function generatePrintableReport(health) {
   <h2>Medications (${prescriptions.length})</h2>
   <table>
     <tr><th>Name</th><th>Dosage</th><th>Doctor</th><th>Instructions</th></tr>
-    ${prescriptions.map(p => `<tr><td>${p.medication}</td><td>${p.dosage || '—'}</td><td>${p.doctorName || '—'}</td><td>${p.instructions || '—'}</td></tr>`).join('')}
+    ${prescriptions.map(p => `<tr><td>${p.medication}</td><td>${p.dosage || 'â€”'}</td><td>${p.doctorName || 'â€”'}</td><td>${p.instructions || 'â€”'}</td></tr>`).join('')}
   </table>
 
   <h2>Drug Interactions</h2>
@@ -523,7 +542,7 @@ function generatePrintableReport(health) {
   </table>
 
   <div class="footer">
-    Generated by Sanjeev AI — Holistic Health & Medication Safety Platform<br>
+    Generated by Sanjeev AI â€” Holistic Health & Medication Safety Platform<br>
     This report is for informational purposes. Always consult a healthcare professional.
   </div>
 </body></html>`;
